@@ -1,0 +1,38 @@
+services:
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+
+  backend:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    depends_on:
+      - orchestrator
+    environment:
+      - ORCHESTRATOR_URL=http://orchestrator:9000
+
+  orchestrator:
+    build: ./orchestrator
+    ports:
+      - "9000:9000"
+    depends_on:
+      - db
+    environment:
+      - DB_URL=postgres://user:password@db:5432/app
+
+  db:
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: app
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+volumes:
+  db_data:
