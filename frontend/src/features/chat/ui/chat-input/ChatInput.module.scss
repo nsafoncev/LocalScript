@@ -1,0 +1,140 @@
+.composer {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--mts-border);
+  border-radius: 24px;
+  background: var(--mts-surface-muted);
+}
+
+.inputShell {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  padding: 0 4px;
+}
+
+.input {
+  width: 100%;
+  min-height: 56px;
+  max-height: 180px;
+  padding: 16px 0 14px;
+  resize: none;
+  border: 0;
+  outline: none;
+  color: var(--mts-ink);
+  background: transparent;
+  line-height: 1.55;
+  scrollbar-width: thin;
+}
+
+.input::placeholder {
+  color: var(--mts-placeholder);
+}
+
+.sendButton {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  align-self: center;
+  flex-shrink: 0;
+  width: 52px;
+  height: 52px;
+  padding: 0;
+  border: 0;
+  border-radius: 18px;
+  background: var(--mts-red);
+  box-shadow: 0 12px 22px var(--mts-shadow-red);
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    opacity 0.18s ease,
+    background-color 0.18s ease;
+}
+
+.sendButton:hover:not(:disabled) {
+  transform: translateY(-1px);
+  background: var(--mts-red-hover);
+  box-shadow: 0 14px 24px var(--mts-shadow-red);
+}
+
+.sendButton:active:not(:disabled) {
+  transform: translateY(0);
+  background: var(--mts-red-active);
+}
+
+.sendButton:disabled {
+  cursor: not-allowed;
+  background: var(--mts-disabled-red);
+  box-shadow: none;
+}
+
+.sendButton:focus-visible {
+  outline: 2px solid var(--mts-focus-ring);
+  outline-offset: 3px;
+}
+
+.iconLayer,
+.loaderLayer {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  transition:
+    opacity 0.16s ease,
+    transform 0.2s ease;
+}
+
+.sendIcon {
+  display: block;
+}
+
+.loaderLayer {
+  opacity: 0;
+  transform: scale(0.78);
+}
+
+.loading .iconLayer {
+  opacity: 0;
+  transform: scale(0.72);
+}
+
+.loading .loaderLayer {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.loader {
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--mts-spinner-track);
+  border-top-color: var(--mts-white);
+  border-radius: 50%;
+  animation: spin 0.72s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 768px) {
+  .composer {
+    gap: 10px;
+    padding: 10px 12px;
+  }
+
+  .input {
+    min-height: 52px;
+    padding: 14px 0 12px;
+  }
+
+  .sendButton {
+    width: 48px;
+    height: 48px;
+    border-radius: 16px;
+  }
+}
