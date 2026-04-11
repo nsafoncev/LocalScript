@@ -1,38 +1,39 @@
 services:
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "8088:80"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - frontend
+      - backend
+
   frontend:
     build: ./frontend
-    ports:
-      - "3000:3000"
+    expose:
+      - "3000"
     depends_on:
       - backend
 
   backend:
     build: ./backend
-    ports:
-      - "8000:8000"
+    expose:
+      - "8000"
     depends_on:
-      - orchestrator
+      - ollama
     environment:
-      - ORCHESTRATOR_URL=http://orchestrator:9000
+      - OLLAMA_HOST=http://ollama:11434
+      - MODEL_NAME=qwen2.5-coder:3b-instruct-q4_K_M
 
-  orchestrator:
-    build: ./orchestrator
+  ollama:
+    image: ollama/ollama
     ports:
-      - "9000:9000"
-    depends_on:
-      - db
-    environment:
-      - DB_URL=postgres://user:password@db:5432/app
-
-  db:
-    image: postgres:15
-    restart: always
-    environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: app
+      - "11434:11434"
     volumes:
-      - db_data:/var/lib/postgresql/data
+      - ollama_data:/root/.ollama
+      - ./ollama/entrypoint.sh:/entrypoint.sh:ro
+    entrypoint: ["/bin/sh", "/entrypoint.sh"]
 
 volumes:
-  db_data:
+  ollama_data:

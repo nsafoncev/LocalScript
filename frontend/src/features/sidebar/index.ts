@@ -1,0 +1,5 @@
+export { createChatListApi } from './api'
+export { SidebarPanel } from './ui/sidebar-panel/SidebarPanel'
+export { initialSidebarState, sidebarReducer } from './model/sidebar-reducer'
+export type { ChatListApi } from './api'
+export type { SidebarState } from './model/types'

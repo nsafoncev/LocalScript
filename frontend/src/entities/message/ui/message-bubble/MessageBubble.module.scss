@@ -1,0 +1,64 @@
+.message {
+  max-width: min(720px, 92%);
+  padding: 16px 18px;
+  border-radius: 22px;
+}
+
+.assistant {
+  align-self: flex-start;
+  background: var(--mts-surface-muted);
+  border: 1px solid var(--mts-border);
+}
+
+.user {
+  align-self: flex-end;
+  background: var(--mts-red);
+  border: 1px solid var(--mts-red);
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.role {
+  color: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.assistant .role,
+.assistant .time,
+.assistant .text {
+  color: var(--mts-ink);
+}
+
+.user .role,
+.user .time,
+.user .text {
+  color: var(--mts-white);
+}
+
+.time {
+  font-size: 0.8rem;
+  opacity: 0.7;
+}
+
+.text {
+  margin: 0;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+@media (max-width: 768px) {
+  .message {
+    max-width: 100%;
+    padding: 14px 16px;
+    border-radius: 18px;
+  }
+}

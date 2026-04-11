@@ -1,0 +1,143 @@
+.shell {
+  position: relative;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  min-height: 100vh;
+  padding: 14px;
+}
+
+.topbar {
+  position: relative;
+  z-index: 12;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 14px;
+}
+
+.topbarMain {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.burger {
+  flex-shrink: 0;
+}
+
+.workspace {
+  min-height: 0;
+  display: flex;
+  gap: 18px;
+}
+
+.desktopRail {
+  width: 0;
+  flex: 0 0 0;
+  overflow: hidden;
+  transition:
+    width 0.24s ease,
+    flex-basis 0.24s ease;
+}
+
+.desktopRailOpen {
+  width: 312px;
+  flex-basis: 312px;
+}
+
+.desktopSidebar {
+  width: 312px;
+  height: 100%;
+  min-height: 0;
+  opacity: 0;
+  transform: translateX(-18px);
+  transition:
+    transform 0.24s ease,
+    opacity 0.18s ease;
+}
+
+.desktopSidebarOpen {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.chatArea {
+  min-width: 0;
+  min-height: 0;
+  flex: 1 1 auto;
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 8;
+  border: 0;
+  background: var(--mts-overlay);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.overlayVisible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.mobileDrawer {
+  position: fixed;
+  top: 84px;
+  bottom: 12px;
+  left: 12px;
+  width: min(86vw, 360px);
+  z-index: 10;
+  pointer-events: none;
+  transform: translateX(calc(-100% - 18px));
+  transition: transform 0.24s ease;
+}
+
+.mobileDrawerVisible {
+  pointer-events: auto;
+  transform: translateX(0);
+}
+
+@media (max-width: 1024px) {
+  .desktopRailOpen {
+    width: 284px;
+    flex-basis: 284px;
+  }
+
+  .desktopSidebar {
+    width: 284px;
+  }
+}
+
+@media (min-width: 769px) {
+  .overlay,
+  .mobileDrawer {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .shell {
+    padding: 12px;
+  }
+
+  .topbar {
+    gap: 12px;
+    padding-bottom: 12px;
+  }
+
+  .desktopRail {
+    display: none;
+  }
+
+  .workspace {
+    gap: 0;
+  }
+
+  .mobileDrawer {
+    width: min(88vw, 360px);
+  }
+}

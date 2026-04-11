@@ -6,7 +6,7 @@ MODEL_NAME = os.getenv("MODEL_NAME", "qwen2.5-coder:3b-instruct-q4_K_M")
 
 OLLAMA_PARAMS = {
     "num_ctx": 4096,
-    "num_pridict": 256,
+    "num_predict": 256,
     "temperature": 0.2,
 }
 

@@ -1,0 +1,24 @@
+.empty {
+  display: flex;
+  flex-direction: column;
+  place-items: center;
+  gap: 10px;
+  padding: 0 18px;
+  text-align: center;
+}
+
+.title {
+  margin: 0;
+  max-width: 520px;
+  color: var(--mts-ink);
+  font-size: clamp(1.45rem, 3.6vw, 2.1rem);
+  line-height: 1.1;
+  font-weight: 700;
+}
+
+.description {
+  margin: 0;
+  max-width: 420px;
+  color: var(--mts-ink-soft);
+  font-size: 0.95rem;
+}
