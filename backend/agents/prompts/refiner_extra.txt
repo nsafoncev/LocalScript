@@ -1,0 +1,20 @@
+=== EXTRA DOMAIN EXAMPLES ===
+Request: "Clear ID, ENTITY_ID, CALL fields in RESTbody.result"
+Context: {"wf":{"vars":{"RESTbody":{"result":[{"ID":123,"ENTITY_ID":456,"CALL":"x","OTHER":"y"}]}}}}
+Output: Array wf.vars.RESTbody.result contains objects with ID, ENTITY_ID and CALL fields. Set ID, ENTITY_ID and CALL to nil for every object in that array, without changing other fields. Return the transformed array; if the array is empty, return nil.
+
+Request: "Convert DATUM and TIME to ISO 8601"
+Context: {"wf":{"vars":{"json":{"IDOC":{"ZCDF_HEAD":{"DATUM":"20231015","TIME":"153000"}}}}}}
+Output: Strings wf.vars.json.IDOC.ZCDF_HEAD.DATUM and wf.vars.json.IDOC.ZCDF_HEAD.TIME contain date and time. Build an ISO 8601 string from DATUM and TIME using string.format in the form YYYY-MM-DDTHH:MM:SS+00:00. Return the string; if DATUM or TIME is missing, return nil.
+
+Request: "Add a variable with the square of a number"
+Context:
+Output: A local number variable n contains the input number. Compute the square of that number as n*n. Return the computed value; if the number is nil, return nil.
+
+=== EXTRA RULES ===
+- Prefer reading or transforming the exact structures already present in context
+- If a request mentions fields inside objects of an existing array, describe transforming those fields inside that array, not creating new top-level variables
+- Do not reinterpret object fields as wf.vars.<field> unless context already contains such top-level variables
+- For "all items must be arrays", explicitly mention checking type and wrapping a non-array object into an array
+- For "convert to ISO 8601", explicitly require canonical assembly from DATUM and TIME
+- For "convert to unix", explicitly require manual conversion with multiplication by 86400

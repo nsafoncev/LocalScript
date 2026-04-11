@@ -1,0 +1,28 @@
+=== EXTRA DOMAIN RULES ===
+- If context contains an existing array of objects and the task is to clean fields, iterate that array and return a transformed array
+- For "clean ID, ENTITY_ID, CALL" on wf.vars.RESTbody.result, use a loop over wf.vars.RESTbody.result and set those fields to nil inside each object
+- For "all items must be arrays", use type(x)=="table" checks; if items is a single object, wrap it with _utils.array.new() and table.insert
+- For ISO 8601 from DATUM and TIME, prefer string.format and preserve DATUM and TIME names in code
+- For Unix conversion, produce the full calculation, including a days function and multiplication by 86400
+- Do not invent wf.vars.square or other storage variables unless the task explicitly names them; if no variable name is given, return one result key with computed code
+
+=== EXTRA EXAMPLES ===
+Task: Clear ID, ENTITY_ID, CALL fields in RESTbody.result
+Context: {"wf":{"vars":{"RESTbody":{"result":[{"ID":123,"ENTITY_ID":456,"CALL":"x","OTHER":"y"}]}}}}
+Output: {"result":"lua{local r=_utils.array.new()\nfor _,i in ipairs(wf.vars.RESTbody.result) do\ni.ID=nil\ni.ENTITY_ID=nil\ni.CALL=nil\ntable.insert(r,i)\nend\nreturn #r>0 and r or nil}lua"}
+
+Task: Convert DATUM and TIME to ISO 8601
+Context: {"wf":{"vars":{"json":{"IDOC":{"ZCDF_HEAD":{"DATUM":"20231015","TIME":"153000"}}}}}}
+Output: {"result":"lua{local d=wf.vars.json.IDOC.ZCDF_HEAD.DATUM\nlocal t=wf.vars.json.IDOC.ZCDF_HEAD.TIME\nif not d or not t then return nil end\nreturn string.format(\"%s-%s-%sT%s:%s:%s+00:00\",d:sub(1,4),d:sub(5,6),d:sub(7,8),t:sub(1,2),t:sub(3,4),t:sub(5,6))}lua"}
+
+Task: Ensure all items in ZCDF_PACKAGES are arrays
+Context: {"wf":{"vars":{"json":{"IDOC":{"ZCDF_HEAD":{"ZCDF_PACKAGES":[{"items":[{"sku":"A"}]},{"items":{"sku":"C"}}]}}}}}}
+Output: {"result":"lua{local r=_utils.array.new()\nfor _,p in ipairs(wf.vars.json.IDOC.ZCDF_HEAD.ZCDF_PACKAGES) do\nif type(p.items)==\"table\" and p.items[1]~=nil then table.insert(r,p)\nelseif type(p.items)==\"table\" then local a=_utils.array.new();table.insert(a,p.items);p.items=a;table.insert(r,p)\nend\nend\nreturn #r>0 and r or nil}lua"}
+
+Task: Add a variable with the square of a number
+Context:
+Output: {"result":"lua{local n=tonumber('5')\nif n==nil then return nil end\nreturn n*n}lua"}
+
+Task: Convert ISO 8601 time to unix timestamp
+Context: {"wf":{"initVariables":{"recallTime":"2023-10-15T15:30:00+00:00"}}}
+Output: {"unix_time":"lua{local s=wf.initVariables.recallTime\nlocal Y,M,D,h,m,sec,sg,oh,om=s:match(\"(%d+)-(%d+)-(%d+)T(%d+):(%d+):(%d+)([+-])(%d+):(%d+)\")\nif not Y then return nil end\nlocal dim={31,28,31,30,31,30,31,31,30,31,30,31}\nlocal function leap(y)return(y%4==0 and y%100~=0)or y%400==0 end\nlocal function days(y,mo,d)local t=0;for i=1970,y-1 do t=t+(leap(i)and 366 or 365)end;for i=1,mo-1 do t=t+dim[i];if i==2 and leap(y)then t=t+1 end end;return t+d-1 end\nlocal td=days(Y+0,M+0,D+0)\nlocal ts=td*86400+(h+0)*3600+(m+0)*60+(sec+0)\nlocal ofs=(oh+0)*3600+(om+0)*60\nreturn sg==\"+\" and ts-ofs or ts+ofs}lua"}
