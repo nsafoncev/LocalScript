@@ -14,9 +14,15 @@ describe('createChatApi', () => {
       prompt: 'Сгенерируй приветствие',
     })
 
-    expect(postSpy).toHaveBeenCalledWith('/generate', {
-      prompt: 'Сгенерируй приветствие',
-    })
+    expect(postSpy).toHaveBeenCalledWith(
+      '/generate',
+      {
+        prompt: 'Сгенерируй приветствие',
+      },
+      {
+        signal: undefined,
+      },
+    )
     expect(result).toEqual({ code: 'print("Hello")' })
   })
 

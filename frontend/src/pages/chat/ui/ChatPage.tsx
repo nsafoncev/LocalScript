@@ -27,6 +27,7 @@ export function ChatPage({
     selectChat,
     sendMessage,
     sidebarError,
+    stopGenerating,
     toggleSidebar,
   } = useChatWorkspace()
 
@@ -47,6 +48,7 @@ export function ChatPage({
           onCreateChat={createChat}
           onSelectChat={selectChat}
           onSendMessage={sendMessage}
+          onStopGenerating={stopGenerating}
           onToggleSidebar={toggleSidebar}
           sidebarError={sidebarError}
           theme={theme}

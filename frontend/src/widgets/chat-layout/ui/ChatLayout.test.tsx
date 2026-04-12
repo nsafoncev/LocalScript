@@ -22,6 +22,7 @@ describe('ChatLayout', () => {
         onCreateChat={vi.fn()}
         onSelectChat={vi.fn()}
         onSendMessage={vi.fn(async () => undefined)}
+        onStopGenerating={vi.fn()}
         onToggleSidebar={vi.fn()}
         onToggleTheme={vi.fn()}
         sidebarError={null}
@@ -52,6 +53,7 @@ describe('ChatLayout', () => {
         onCreateChat={vi.fn()}
         onSelectChat={vi.fn()}
         onSendMessage={vi.fn(async () => undefined)}
+        onStopGenerating={vi.fn()}
         onToggleSidebar={vi.fn()}
         onToggleTheme={vi.fn()}
         sidebarError={null}
@@ -81,6 +83,7 @@ describe('ChatLayout', () => {
         onCreateChat={vi.fn()}
         onSelectChat={vi.fn()}
         onSendMessage={vi.fn(async () => undefined)}
+        onStopGenerating={vi.fn()}
         onToggleSidebar={vi.fn()}
         onToggleTheme={vi.fn()}
         sidebarError={null}
@@ -111,6 +114,7 @@ describe('ChatLayout', () => {
         onCreateChat={vi.fn()}
         onSelectChat={vi.fn()}
         onSendMessage={vi.fn(async () => undefined)}
+        onStopGenerating={vi.fn()}
         onToggleSidebar={vi.fn()}
         onToggleTheme={onToggleTheme}
         sidebarError={null}
@@ -138,6 +142,7 @@ describe('ChatLayout', () => {
         onCreateChat={vi.fn()}
         onSelectChat={vi.fn()}
         onSendMessage={vi.fn(async () => undefined)}
+        onStopGenerating={vi.fn()}
         onToggleSidebar={vi.fn()}
         onToggleTheme={vi.fn()}
         sidebarError={null}

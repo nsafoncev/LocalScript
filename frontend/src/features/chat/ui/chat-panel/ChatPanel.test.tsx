@@ -13,6 +13,8 @@ describe('ChatPanel', () => {
         isPending={false}
         messages={[]}
         onSendMessage={vi.fn(async () => undefined)}
+        onStopGenerating={vi.fn()}
+        theme="light"
         title="Новый чат"
       />,
     )
@@ -32,6 +34,8 @@ describe('ChatPanel', () => {
         isPending={false}
         messages={[]}
         onSendMessage={onSendMessage}
+        onStopGenerating={vi.fn()}
+        theme="light"
         title="Новый чат"
       />,
     )
@@ -58,6 +62,8 @@ describe('ChatPanel', () => {
         isPending={false}
         messages={[]}
         onSendMessage={onSendMessage}
+        onStopGenerating={vi.fn()}
+        theme="light"
         title="Первый чат"
       />,
     )
@@ -75,6 +81,8 @@ describe('ChatPanel', () => {
         isPending={false}
         messages={[]}
         onSendMessage={onSendMessage}
+        onStopGenerating={vi.fn()}
+        theme="light"
         title="Второй чат"
       />,
     )
@@ -91,6 +99,8 @@ describe('ChatPanel', () => {
         isPending={false}
         messages={[]}
         onSendMessage={vi.fn(async () => undefined)}
+        onStopGenerating={vi.fn()}
+        theme="light"
         title="Новый чат"
       />,
     )

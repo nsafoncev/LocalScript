@@ -3,7 +3,11 @@ export async function copyText(text: string): Promise<boolean> {
     return false
   }
 
-  await globalThis.navigator.clipboard.writeText(text)
+  try {
+    await globalThis.navigator.clipboard.writeText(text)
+  } catch {
+    return false
+  }
 
   return true
 }

@@ -13,5 +13,6 @@ export interface ChatSessionsState {
 export type ChatSessionAction =
   | { type: 'messageQueued'; payload: ChatMessage }
   | { type: 'requestStarted' }
+  | { type: 'requestCancelled' }
   | { type: 'responseReceived'; payload: ChatMessage }
   | { type: 'requestFailed'; payload: string }

@@ -11,8 +11,9 @@ const MIN_TEXTAREA_HEIGHT = 56
 const MAX_TEXTAREA_HEIGHT = 180
 
 type ChatInputProps = {
-  disabled: boolean
+  isPending: boolean
   onSend: (value: string) => Promise<void>
+  onStopGenerating: () => void
 }
 
 function resizeTextareaElement(element: HTMLTextAreaElement): void {
@@ -29,15 +30,16 @@ function resizeTextareaElement(element: HTMLTextAreaElement): void {
 }
 
 export function ChatInput({
-  disabled,
+  isPending,
   onSend,
+  onStopGenerating,
 }: ChatInputProps): JSX.Element {
   const textareaRef = useRef<HTMLTextAreaElement | null>(null)
   const [value, setValue] = useState('')
   const [isSending, setIsSending] = useState(false)
 
   const trimmedValue = value.trim()
-  const isSubmitDisabled = !trimmedValue || disabled || isSending
+  const isSubmitDisabled = !trimmedValue || isPending || isSending
 
   function resetTextarea(): void {
     const textarea = textareaRef.current
@@ -92,7 +94,7 @@ export function ChatInput({
           ref={textareaRef}
           aria-label="Поле ввода сообщения"
           className={styles.input}
-          disabled={disabled || isSending}
+          disabled={isPending || isSending}
           placeholder="Введите запрос или сообщение..."
           rows={1}
           value={value}
@@ -103,29 +105,40 @@ export function ChatInput({
         />
       </div>
 
-      <button
-        aria-busy={isSending}
-        aria-label="Отправить сообщение"
-        className={`${styles.sendButton} ${isSending ? styles.loading : ''}`}
-        disabled={isSubmitDisabled}
-        type="button"
-        onClick={() => {
-          void handleSubmit()
-        }}
-      >
-        <span className={styles.iconLayer} aria-hidden={isSending}>
-          <img
-            alt=""
-            className={styles.sendIcon}
-            height="18"
-            src="/arrow-up-icon.svg"
-            width="18"
-          />
-        </span>
-        <span className={styles.loaderLayer} aria-hidden={!isSending}>
-          <span className={styles.loader} />
-        </span>
-      </button>
+      {isPending ? (
+        <button
+          aria-label="Остановить генерацию"
+          className={styles.stopButton}
+          type="button"
+          onClick={onStopGenerating}
+        >
+          Стоп
+        </button>
+      ) : (
+        <button
+          aria-busy={isSending}
+          aria-label="Отправить сообщение"
+          className={`${styles.sendButton} ${isSending ? styles.loading : ''}`}
+          disabled={isSubmitDisabled}
+          type="button"
+          onClick={() => {
+            void handleSubmit()
+          }}
+        >
+          <span className={styles.iconLayer} aria-hidden={isSending}>
+            <img
+              alt=""
+              className={styles.sendIcon}
+              height="18"
+              src="/arrow-up-icon.svg"
+              width="18"
+            />
+          </span>
+          <span className={styles.loaderLayer} aria-hidden={!isSending}>
+            <span className={styles.loader} />
+          </span>
+        </button>
+      )}
     </div>
   )
 }

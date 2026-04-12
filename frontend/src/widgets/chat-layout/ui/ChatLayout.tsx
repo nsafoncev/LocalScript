@@ -24,6 +24,7 @@ type ChatLayoutProps = {
   onCloseSidebar: () => void
   onToggleTheme: () => void
   onSendMessage: (value: string) => Promise<void>
+  onStopGenerating: () => void
 }
 
 export function ChatLayout({
@@ -43,6 +44,7 @@ export function ChatLayout({
   onCloseSidebar,
   onToggleTheme,
   onSendMessage,
+  onStopGenerating,
 }: ChatLayoutProps): JSX.Element {
   return (
     <section className={styles.shell}>
@@ -80,6 +82,8 @@ export function ChatLayout({
             isPending={isChatPending}
             messages={messages}
             onSendMessage={onSendMessage}
+            onStopGenerating={onStopGenerating}
+            theme={theme}
             title={activeChatTitle}
           />
         </div>

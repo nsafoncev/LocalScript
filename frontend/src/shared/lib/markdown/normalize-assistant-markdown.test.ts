@@ -11,12 +11,12 @@ describe('normalizeAssistantMarkdown', () => {
     )
   })
 
-  it('wraps raw code into a fenced code block', () => {
+  it('keeps raw code unchanged after format detection moved to model layer', () => {
     expect(
       normalizeAssistantMarkdown(
         'function sum(a, b) {\n  return a + b\n}',
       ),
-    ).toBe('```\nfunction sum(a, b) {\n  return a + b\n}\n```')
+    ).toBe('function sum(a, b) {\n  return a + b\n}')
   })
 
   it('detects markdown code for copy action', () => {

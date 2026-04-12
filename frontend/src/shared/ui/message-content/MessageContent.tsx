@@ -1,9 +1,16 @@
 import type { JSX, ReactNode } from 'react'
+import type { MessageFormat } from '../../lib/message-format'
 import { normalizeAssistantMarkdown, parseMarkdown } from '../../lib/markdown'
+import type { AppTheme } from '../../lib/theme/types'
+import { CodeBlock } from '../CodeBlock'
 import styles from './MessageContent.module.scss'
 
 type MessageContentProps = {
   text: string
+  format: MessageFormat
+  theme: AppTheme
+  codeCopyStatus?: string | null
+  onCopyCode?: () => void
 }
 
 function renderTextWithBreaks(value: string): ReactNode {
@@ -15,7 +22,26 @@ function renderTextWithBreaks(value: string): ReactNode {
   ))
 }
 
-export function MessageContent({ text }: MessageContentProps): JSX.Element {
+export function MessageContent({
+  text,
+  format,
+  theme,
+  codeCopyStatus = null,
+  onCopyCode,
+}: MessageContentProps): JSX.Element {
+  if (format === 'code') {
+    return (
+      <div className={styles.content}>
+        <CodeBlock
+          code={text}
+          copyStatus={codeCopyStatus}
+          theme={theme}
+          onCopyCode={onCopyCode}
+        />
+      </div>
+    )
+  }
+
   const markdown = normalizeAssistantMarkdown(text)
   const blocks = parseMarkdown(markdown)
 
@@ -24,9 +50,12 @@ export function MessageContent({ text }: MessageContentProps): JSX.Element {
       {blocks.map((block, index) => {
         if (block.type === 'code') {
           return (
-            <pre className={styles.codeBlock} key={`code-${index}`}>
-              <code className={styles.code}>{block.code}</code>
-            </pre>
+            <CodeBlock
+              code={block.code}
+              copyStatus={null}
+              key={`code-${index}`}
+              theme={theme}
+            />
           )
         }
 

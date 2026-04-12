@@ -5,7 +5,13 @@ import { ChatInput } from './ChatInput'
 
 describe('ChatInput', () => {
   it('keeps send button disabled when textarea is empty', () => {
-    render(<ChatInput disabled={false} onSend={vi.fn(async () => undefined)} />)
+    render(
+      <ChatInput
+        isPending={false}
+        onSend={vi.fn(async () => undefined)}
+        onStopGenerating={vi.fn()}
+      />,
+    )
 
     expect(
       screen.getByRole('button', { name: /отправить сообщение/i }),
@@ -16,7 +22,13 @@ describe('ChatInput', () => {
     const user = userEvent.setup()
     const onSend = vi.fn(async () => undefined)
 
-    render(<ChatInput disabled={false} onSend={onSend} />)
+    render(
+      <ChatInput
+        isPending={false}
+        onSend={onSend}
+        onStopGenerating={vi.fn()}
+      />,
+    )
 
     const textarea = screen.getByLabelText(/поле ввода сообщения/i)
     await user.type(textarea, 'Подготовь краткий ответ{enter}')
@@ -32,7 +44,13 @@ describe('ChatInput', () => {
     const user = userEvent.setup()
     const onSend = vi.fn(async () => undefined)
 
-    render(<ChatInput disabled={false} onSend={onSend} />)
+    render(
+      <ChatInput
+        isPending={false}
+        onSend={onSend}
+        onStopGenerating={vi.fn()}
+      />,
+    )
 
     const textarea = screen.getByLabelText(/поле ввода сообщения/i)
     await user.type(textarea, 'Первая строка{shift>}{enter}{/shift}Вторая строка')
@@ -52,7 +70,13 @@ describe('ChatInput', () => {
         }),
     )
 
-    render(<ChatInput disabled={false} onSend={onSend} />)
+    render(
+      <ChatInput
+        isPending={false}
+        onSend={onSend}
+        onStopGenerating={vi.fn()}
+      />,
+    )
 
     const textarea = screen.getByLabelText(/поле ввода сообщения/i)
     await user.type(textarea, 'Отправь запрос')
@@ -75,7 +99,13 @@ describe('ChatInput', () => {
     const user = userEvent.setup()
     const onSend = vi.fn(async () => undefined)
 
-    render(<ChatInput disabled={false} onSend={onSend} />)
+    render(
+      <ChatInput
+        isPending={false}
+        onSend={onSend}
+        onStopGenerating={vi.fn()}
+      />,
+    )
 
     const textarea = screen.getByLabelText(
       /поле ввода сообщения/i,
@@ -99,5 +129,31 @@ describe('ChatInput', () => {
     await waitFor(() => {
       expect(textarea.style.height).toBe('56px')
     })
+  })
+
+  it('shows stop button during generation and calls stop handler', async () => {
+    const user = userEvent.setup()
+    const onStopGenerating = vi.fn()
+
+    render(
+      <ChatInput
+        isPending
+        onSend={vi.fn(async () => undefined)}
+        onStopGenerating={onStopGenerating}
+      />,
+    )
+
+    const stopButton = screen.getByRole('button', {
+      name: /остановить генерацию/i,
+    })
+
+    expect(stopButton).toBeInTheDocument()
+    expect(
+      screen.queryByRole('button', { name: /отправить сообщение/i }),
+    ).not.toBeInTheDocument()
+
+    await user.click(stopButton)
+
+    expect(onStopGenerating).toHaveBeenCalledTimes(1)
   })
 })

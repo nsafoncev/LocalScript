@@ -2,7 +2,7 @@
 
 ## Описание функционала
 
-Фича `chat` отвечает за сценарий ввода сообщения, показа пустого состояния, отображения сообщений и получения ответа ассистента с backend API.
+Фича `chat` отвечает за сценарий ввода сообщения, показа пустого состояния, отображения сообщений, остановки генерации и получения ответа ассистента с backend API.
 
 ## Цель
 
@@ -10,6 +10,8 @@
 - не создавать стартовый чат автоматически
 - перевести layout из центрированного режима в обычный только после первого сообщения
 - аккуратно показать ответы ассистента с кодом и поддержать копирование
+- типизированно различать code-only ответ и обычный текст
+- дать пользователю остановить текущую генерацию без поломки UI
 
 ## FSD-слой
 
@@ -18,11 +20,13 @@
 ## Структура
 
 - `api/`
-  - `chat-api.ts` — запрос к backend через `axios`
+  - `chat-api.ts` — запрос к backend через `axios` с поддержкой `AbortSignal`
   - `types.ts` — типы `GenerateCodeRequest`, `GenerateCodeResponse`, `ChatApi`
 - `model/`
   - `chat-reducer.ts` — состояние одной сессии чата
   - `chat-sessions-reducer.ts` — состояние всех сессий
+  - `resolve-assistant-response.ts` — typed mapping backend response -> frontend message format
+  - `request-cancellation.ts` — определение отменённого запроса
 - `ui/`
   - `chat-panel/` — основной контейнер чата
   - `chat-input/` — поле ввода и отправка сообщения
@@ -36,7 +40,12 @@ const response = await chatApi.sendMessage({
   prompt: 'Функция factorial(n) для n >= 0',
 })
 
-const assistantMessage = createChatMessage('assistant', response.code)
+const assistantResponse = resolveAssistantResponse(response)
+const assistantMessage = createChatMessage(
+  'assistant',
+  assistantResponse.text,
+  assistantResponse.format,
+)
 ```
 
 ## Ограничения
@@ -44,3 +53,4 @@ const assistantMessage = createChatMessage('assistant', response.code)
 - backend-контракт для этой фичи ограничен endpoint `POST /generate`
 - состояние списка чатов по-прежнему локальное внутри frontend
 - markdown-рендеринг и копирование вынесены в `shared`, чтобы не смешивать UI чата и вспомогательную логику
+- `AbortController` отменяет ожидание ответа на frontend; backend может продолжить вычисление, если не поддерживает server-side cancellation

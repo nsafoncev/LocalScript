@@ -26,6 +26,7 @@ function WorkspaceHarness(): JSX.Element {
     isChatPending,
     messages,
     sendMessage,
+    stopGenerating,
   } = useChatWorkspace()
 
   return (
@@ -52,11 +53,14 @@ function WorkspaceHarness(): JSX.Element {
         Отправить ошибочный запрос
       </button>
       <span>{isChatPending ? 'loading' : 'idle'}</span>
+      <button type="button" onClick={stopGenerating}>
+        Остановить
+      </button>
       {chatError ? <p>{chatError}</p> : null}
       <ul>
         {messages.map((message) => (
           <li key={message.id}>
-            {message.role}: {message.text}
+            {message.role}/{message.format}: {message.text}
           </li>
         ))}
       </ul>
@@ -102,14 +106,20 @@ describe('useChatWorkspace backend integration', () => {
     await user.click(screen.getByRole('button', { name: 'Отправить запрос' }))
 
     await waitFor(() => {
-      expect(postMock).toHaveBeenCalledWith('/generate', {
-        prompt: 'Функция factorial(n) для n >= 0',
-      })
+      expect(postMock).toHaveBeenCalledWith(
+        '/generate',
+        {
+          prompt: 'Функция factorial(n) для n >= 0',
+        },
+        expect.objectContaining({
+          signal: expect.any(AbortSignal),
+        }),
+      )
     })
 
     expect(await screen.findByText('Чатов: 1')).toBeInTheDocument()
     expect(
-      await screen.findByText(/assistant: function factorial\(n\)/i),
+      await screen.findByText(/assistant\/code: function factorial\(n\)/i),
     ).toBeInTheDocument()
     expect(screen.getByText('idle')).toBeInTheDocument()
   })
@@ -130,5 +140,45 @@ describe('useChatWorkspace backend integration', () => {
       ),
     ).toBeInTheDocument()
     expect(screen.getByText('idle')).toBeInTheDocument()
+  })
+
+  it('stops generation and does not add unfinished assistant message', async () => {
+    let abortSignal: AbortSignal | undefined
+
+    postMock.mockImplementation(
+      async (
+        _url: string,
+        _payload: unknown,
+        config?: { signal?: AbortSignal },
+      ) => {
+        abortSignal = config?.signal
+
+        return new Promise<never>((_, reject) => {
+          config?.signal?.addEventListener('abort', () => {
+            reject(new DOMException('Aborted', 'AbortError'))
+          })
+        })
+      },
+    )
+
+    const user = userEvent.setup()
+
+    render(<WorkspaceHarness />)
+
+    await screen.findByText('Чатов: 0')
+    await user.click(screen.getByRole('button', { name: 'Отправить запрос' }))
+
+    expect(await screen.findByText('loading')).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Остановить' }))
+
+    await waitFor(() => {
+      expect(abortSignal?.aborted).toBe(true)
+      expect(screen.getByText('idle')).toBeInTheDocument()
+    })
+
+    expect(
+      screen.queryByText(/assistant\/code: function factorial/i),
+    ).not.toBeInTheDocument()
   })
 })

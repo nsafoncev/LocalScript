@@ -1,4 +1,4 @@
-import { useEffect, useReducer } from 'react'
+import { useEffect, useReducer, useRef } from 'react'
 import {
   createLocalChatPreview,
   deriveChatTitle,
@@ -12,6 +12,8 @@ import {
   createChatApi,
   initialChatSessionState,
   initialChatSessionsState,
+  isRequestCancelled,
+  resolveAssistantResponse,
 } from '../../../features/chat'
 import {
   createChatListApi,
@@ -58,6 +60,7 @@ export interface UseChatWorkspaceResult {
   openSidebar(): void
   closeSidebar(): void
   sendMessage(value: string): Promise<void>
+  stopGenerating(): void
 }
 
 export function useChatWorkspace(): UseChatWorkspaceResult {
@@ -69,6 +72,8 @@ export function useChatWorkspace(): UseChatWorkspaceResult {
     chatSessionsReducer,
     initialChatSessionsState,
   )
+  const abortControllerRef = useRef<AbortController | null>(null)
+  const pendingChatIdRef = useRef<string | null>(null)
 
   useEffect(() => {
     let isMounted = true
@@ -100,6 +105,7 @@ export function useChatWorkspace(): UseChatWorkspaceResult {
 
     return () => {
       isMounted = false
+      abortControllerRef.current?.abort()
     }
   }, [])
 
@@ -140,6 +146,107 @@ export function useChatWorkspace(): UseChatWorkspaceResult {
     }
 
     openSidebar()
+  }
+
+  function finishPendingRequest(chatId: string): void {
+    pendingChatIdRef.current = null
+    abortControllerRef.current = null
+
+    chatDispatch({
+      type: 'sessionUpdated',
+      payload: {
+        chatId,
+        action: { type: 'requestCancelled' },
+      },
+    })
+  }
+
+  function stopGenerating(): void {
+    const pendingChatId = pendingChatIdRef.current
+
+    abortControllerRef.current?.abort()
+
+    if (!pendingChatId) {
+      abortControllerRef.current = null
+      return
+    }
+
+    finishPendingRequest(pendingChatId)
+  }
+
+  function requestAssistantMessage(
+    chatId: string,
+    prompt: string,
+    queuedChatPreview: ChatPreview,
+    abortController: AbortController,
+  ): void {
+    pendingChatIdRef.current = chatId
+    abortControllerRef.current = abortController
+
+    void (async () => {
+      try {
+        const response = await chatApi.sendMessage(
+          {
+            prompt,
+          },
+          {
+            signal: abortController.signal,
+          },
+        )
+
+        if (abortController.signal.aborted) {
+          finishPendingRequest(chatId)
+          return
+        }
+
+        const assistantResponse = resolveAssistantResponse(response)
+        const assistantMessage = createChatMessage(
+          'assistant',
+          assistantResponse.text,
+          assistantResponse.format,
+        )
+
+        pendingChatIdRef.current = null
+        abortControllerRef.current = null
+
+        chatDispatch({
+          type: 'sessionUpdated',
+          payload: {
+            chatId,
+            action: { type: 'responseReceived', payload: assistantMessage },
+          },
+        })
+
+        sidebarDispatch({
+          type: 'chatUpdated',
+          payload: updateChatPreview(queuedChatPreview, {
+            lastMessage: createPreviewText(assistantResponse.text),
+          }),
+        })
+      } catch (error: unknown) {
+        if (isRequestCancelled(error) || abortController.signal.aborted) {
+          finishPendingRequest(chatId)
+          return
+        }
+
+        pendingChatIdRef.current = null
+        abortControllerRef.current = null
+
+        const errorMessage =
+          error instanceof Error ? error.message : CHAT_ERROR_MESSAGE
+
+        chatDispatch({
+          type: 'sessionUpdated',
+          payload: {
+            chatId,
+            action: {
+              type: 'requestFailed',
+              payload: errorMessage,
+            },
+          },
+        })
+      }
+    })()
   }
 
   async function sendMessage(value: string): Promise<void> {
@@ -196,41 +303,12 @@ export function useChatWorkspace(): UseChatWorkspaceResult {
       payload: queuedChatPreview,
     })
 
-    try {
-      const response = await chatApi.sendMessage({
-        prompt: message,
-      })
-      const assistantMessage = createChatMessage('assistant', response.code)
-
-      chatDispatch({
-        type: 'sessionUpdated',
-        payload: {
-          chatId: currentChat.id,
-          action: { type: 'responseReceived', payload: assistantMessage },
-        },
-      })
-
-      sidebarDispatch({
-        type: 'chatUpdated',
-        payload: updateChatPreview(queuedChatPreview, {
-          lastMessage: createPreviewText(response.code),
-        }),
-      })
-    } catch (error: unknown) {
-      const errorMessage =
-        error instanceof Error ? error.message : CHAT_ERROR_MESSAGE
-
-      chatDispatch({
-        type: 'sessionUpdated',
-        payload: {
-          chatId: currentChat.id,
-          action: {
-            type: 'requestFailed',
-            payload: errorMessage,
-          },
-        },
-      })
-    }
+    requestAssistantMessage(
+      currentChat.id,
+      message,
+      queuedChatPreview,
+      new AbortController(),
+    )
   }
 
   return {
@@ -249,5 +327,6 @@ export function useChatWorkspace(): UseChatWorkspaceResult {
     openSidebar,
     closeSidebar,
     sendMessage,
+    stopGenerating,
   }
 }

@@ -1,6 +1,7 @@
 import type { JSX } from 'react'
 import type { ChatMessage } from '../../../../entities/message'
 import { MessageList } from '../../../../entities/message'
+import type { AppTheme } from '../../../../shared/lib/theme/types'
 import { Panel } from '../../../../shared/ui'
 import { ChatEmptyState } from '../chat-empty-state/ChatEmptyState'
 import { ChatInput } from '../chat-input/ChatInput'
@@ -14,7 +15,9 @@ type ChatPanelProps = {
   messages: readonly ChatMessage[]
   isPending: boolean
   error: string | null
+  theme: AppTheme
   onSendMessage: (value: string) => Promise<void>
+  onStopGenerating: () => void
 }
 
 export function ChatPanel({
@@ -24,14 +27,17 @@ export function ChatPanel({
   messages,
   isPending,
   error,
+  theme,
   onSendMessage,
+  onStopGenerating,
 }: ChatPanelProps): JSX.Element {
   const hasMessages = messages.length > 0
   const input = (
     <ChatInput
       key={chatId ?? 'chat-input-empty'}
-      disabled={isPending}
+      isPending={isPending}
       onSend={onSendMessage}
+      onStopGenerating={onStopGenerating}
     />
   )
 
@@ -53,13 +59,15 @@ export function ChatPanel({
         <h2 className={styles.title}>{title}</h2>
       </header>
       <div className={styles.body}>
-        <div className={styles.messages}>
-          <MessageList messages={messages} />
-          {isPending ? (
-            <div className={styles.loadingRow}>
-              <ChatLoading />
-            </div>
-          ) : null}
+        <div className={styles.messagesViewport}>
+          <div className={styles.messages}>
+            <MessageList messages={messages} theme={theme} />
+            {isPending ? (
+              <div className={styles.loadingRow}>
+                <ChatLoading />
+              </div>
+            ) : null}
+          </div>
         </div>
         {error ? <p className={styles.error}>{error}</p> : null}
       </div>

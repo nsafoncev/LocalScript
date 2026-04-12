@@ -1,3 +1,4 @@
+import type { MessageFormat } from '../../../shared/lib/message-format'
 import type { ChatMessage, MessageRole } from './types'
 
 function createMessageId(role: MessageRole): string {
@@ -7,11 +8,13 @@ function createMessageId(role: MessageRole): string {
 export function createChatMessage(
   role: MessageRole,
   text: string,
+  format: MessageFormat = 'text',
 ): ChatMessage {
   return {
     id: createMessageId(role),
     role,
     text,
+    format,
     createdAt: new Date().toISOString(),
   }
 }

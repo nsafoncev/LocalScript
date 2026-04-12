@@ -5,7 +5,7 @@ import { createChatMessage } from '../../model/create-message'
 import { MessageBubble } from './MessageBubble'
 
 describe('MessageBubble', () => {
-  it('shows copy button for assistant code message', async () => {
+  it('copies full assistant message and code separately', async () => {
     const user = userEvent.setup()
     const writeText = vi.fn(async () => undefined)
 
@@ -18,26 +18,48 @@ describe('MessageBubble', () => {
 
     render(
       <MessageBubble
-        message={createChatMessage('assistant', 'const answer = 42\nreturn answer')}
+        message={createChatMessage(
+          'assistant',
+          'const answer = 42\nreturn answer',
+          'code',
+        )}
+        theme="light"
       />,
     )
 
-    await user.click(screen.getByRole('button', { name: /скопировать/i }))
+    await user.click(screen.getByRole('button', { name: /скопировать код/i }))
+    await user.click(
+      screen.getByRole('button', { name: /скопировать сообщение/i }),
+    )
 
     await waitFor(() => {
-      expect(writeText).toHaveBeenCalledWith('const answer = 42\nreturn answer')
+      expect(writeText).toHaveBeenNthCalledWith(
+        1,
+        'const answer = 42\nreturn answer',
+      )
+      expect(writeText).toHaveBeenNthCalledWith(
+        2,
+        'const answer = 42\nreturn answer',
+      )
     })
 
-    expect(screen.getByRole('button', { name: /скопировано/i })).toBeInTheDocument()
+    expect(screen.getByText(/код скопирован/i)).toBeInTheDocument()
+    expect(screen.getByText(/сообщение скопировано/i)).toBeInTheDocument()
   })
 
-  it('does not show copy button for user message', () => {
+  it('shows only full message copy for user message', () => {
     render(
       <MessageBubble
         message={createChatMessage('user', 'Подготовь краткий ответ')}
+        theme="dark"
       />,
     )
 
-    expect(screen.queryByRole('button', { name: /скопировать/i })).not.toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: /скопировать сообщение/i }),
+    ).toBeInTheDocument()
+    expect(
+      screen.queryByRole('button', { name: /скопировать код/i }),
+    ).not.toBeInTheDocument()
   })
 })

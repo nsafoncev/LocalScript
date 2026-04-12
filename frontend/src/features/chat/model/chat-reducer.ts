@@ -23,6 +23,12 @@ export function chatReducer(
         isPending: true,
         error: null,
       }
+    case 'requestCancelled':
+      return {
+        ...state,
+        isPending: false,
+        error: null,
+      }
     case 'responseReceived':
       return {
         ...state,

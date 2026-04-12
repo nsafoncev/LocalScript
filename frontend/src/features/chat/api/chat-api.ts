@@ -1,6 +1,7 @@
 import type { AxiosInstance } from 'axios'
 import type {
   ChatApi,
+  ChatRequestOptions,
   GenerateCodeRequest,
   GenerateCodeResponse,
 } from './types'
@@ -12,11 +13,15 @@ export function createChatApi(client: AxiosInstance): ChatApi {
   return {
     async sendMessage(
       payload: GenerateCodeRequest,
+      options?: ChatRequestOptions,
     ): Promise<GenerateCodeResponse> {
       try {
         const { data } = await client.post<GenerateCodeResponse>(
           '/generate',
           payload,
+          {
+            signal: options?.signal,
+          },
         )
 
         return data

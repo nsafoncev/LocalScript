@@ -4,6 +4,8 @@ export {
   chatReducer,
   initialChatSessionState,
 } from './model/chat-reducer'
+export { isRequestCancelled } from './model/request-cancellation'
+export { resolveAssistantResponse } from './model/resolve-assistant-response'
 export {
   chatSessionsReducer,
   initialChatSessionsState,
@@ -13,4 +15,5 @@ export type {
   ChatApi,
   GenerateCodeRequest,
   GenerateCodeResponse,
+  ChatRequestOptions,
 } from './api'

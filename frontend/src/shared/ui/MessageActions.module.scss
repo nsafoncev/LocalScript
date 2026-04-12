@@ -1,0 +1,13 @@
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+  color: var(--mts-ink-soft);
+}
+
+.status {
+  color: currentColor;
+  font-size: 0.76rem;
+  line-height: 1;
+}

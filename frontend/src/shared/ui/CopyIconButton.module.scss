@@ -1,0 +1,37 @@
+.button {
+  display: inline-grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 1px solid var(--mts-border);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--mts-surface) 84%, transparent);
+  transition:
+    border-color 0.18s ease,
+    background-color 0.18s ease,
+    transform 0.18s ease,
+    opacity 0.18s ease;
+}
+
+.button:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--mts-red) 24%, var(--mts-border));
+  background: color-mix(in srgb, var(--mts-red) 8%, var(--mts-surface));
+  transform: translateY(-1px);
+}
+
+.button:focus-visible {
+  outline: 2px solid var(--mts-focus-ring);
+  outline-offset: 3px;
+}
+
+.button:disabled {
+  cursor: default;
+  opacity: 0.7;
+}
+
+.icon {
+  display: block;
+  width: 16px;
+  height: 16px;
+}

@@ -76,6 +76,34 @@
   outline-offset: 3px;
 }
 
+.stopButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 88px;
+  height: 52px;
+  padding: 0 18px;
+  border: 1px solid color-mix(in srgb, var(--mts-red) 22%, var(--mts-border));
+  border-radius: 18px;
+  color: var(--mts-red);
+  background: color-mix(in srgb, var(--mts-red) 7%, var(--mts-surface));
+  transition:
+    transform 0.18s ease,
+    background-color 0.18s ease,
+    border-color 0.18s ease;
+}
+
+.stopButton:hover {
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--mts-red) 30%, var(--mts-border));
+  background: color-mix(in srgb, var(--mts-red) 10%, var(--mts-surface));
+}
+
+.stopButton:focus-visible {
+  outline: 2px solid var(--mts-focus-ring);
+  outline-offset: 3px;
+}
+
 .iconLayer,
 .loaderLayer {
   position: absolute;
@@ -134,6 +162,12 @@
 
   .sendButton {
     width: 48px;
+    height: 48px;
+    border-radius: 16px;
+  }
+
+  .stopButton {
+    min-width: 80px;
     height: 48px;
     border-radius: 16px;
   }

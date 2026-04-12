@@ -1,5 +1,8 @@
 export { Button } from './button/Button'
 export { BurgerButton } from './burger-button/BurgerButton'
+export { CodeBlock } from './CodeBlock'
+export { CopyIconButton } from './CopyIconButton'
+export { MessageActions } from './MessageActions'
 export { MessageContent } from './message-content'
 export { Panel } from './panel/Panel'
 export { ThemeToggle } from './theme-toggle/ThemeToggle'

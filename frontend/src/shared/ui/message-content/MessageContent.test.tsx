@@ -4,20 +4,38 @@ import { MessageContent } from './MessageContent'
 
 describe('MessageContent', () => {
   it('renders fenced code blocks', () => {
-    render(<MessageContent text={'```ts\nconst answer = 42\n```'} />)
+    render(
+      <MessageContent
+        format="text"
+        text={'```ts\nconst answer = 42\n```'}
+        theme="light"
+      />,
+    )
 
     expect(screen.getByText('const answer = 42')).toBeInTheDocument()
   })
 
   it('renders inline code inside a paragraph', () => {
-    render(<MessageContent text="Запустите `npm run dev` и проверьте результат." />)
+    render(
+      <MessageContent
+        format="text"
+        text="Запустите `npm run dev` и проверьте результат."
+        theme="light"
+      />,
+    )
 
     expect(screen.getByText('npm run dev')).toBeInTheDocument()
     expect(screen.getByText(/запустите/i)).toBeInTheDocument()
   })
 
-  it('wraps raw assistant code into a code block automatically', () => {
-    render(<MessageContent text={'const total = items.length\nreturn total'} />)
+  it('renders code-only message as standalone code block', () => {
+    render(
+      <MessageContent
+        format="code"
+        text={'const total = items.length\nreturn total'}
+        theme="dark"
+      />,
+    )
 
     expect(screen.getByText(/const total = items\.length/i)).toBeInTheDocument()
     expect(screen.getByText(/return total/i)).toBeInTheDocument()
