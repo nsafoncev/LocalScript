@@ -18,12 +18,23 @@ vi.mock('../../../shared/api', () => ({
 }))
 
 function WorkspaceHarness(): JSX.Element {
-  const { activeChatTitle, chatError, isChatPending, messages, sendMessage } =
-    useChatWorkspace()
+  const {
+    activeChatTitle,
+    chatError,
+    chats,
+    createChat,
+    isChatPending,
+    messages,
+    sendMessage,
+  } = useChatWorkspace()
 
   return (
     <section>
       <h1>{activeChatTitle}</h1>
+      <p>Чатов: {chats.length}</p>
+      <button type="button" onClick={createChat}>
+        Создать чат
+      </button>
       <button
         type="button"
         onClick={() => {
@@ -58,7 +69,25 @@ describe('useChatWorkspace backend integration', () => {
     postMock.mockReset()
   })
 
-  it('sends prompt to backend and stores assistant code', async () => {
+  it('starts with an empty chat history', async () => {
+    render(<WorkspaceHarness />)
+
+    expect(await screen.findByText('Чатов: 0')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Новый чат' })).toBeInTheDocument()
+  })
+
+  it('creates the first chat only after explicit action', async () => {
+    const user = userEvent.setup()
+
+    render(<WorkspaceHarness />)
+
+    await screen.findByText('Чатов: 0')
+    await user.click(screen.getByRole('button', { name: 'Создать чат' }))
+
+    expect(await screen.findByText('Чатов: 1')).toBeInTheDocument()
+  })
+
+  it('sends prompt to backend and creates chat on first message', async () => {
     postMock.mockResolvedValueOnce({
       data: {
         code: 'function factorial(n) {\n  return n <= 1 ? 1 : n * factorial(n - 1)\n}',
@@ -69,7 +98,7 @@ describe('useChatWorkspace backend integration', () => {
 
     render(<WorkspaceHarness />)
 
-    await screen.findByRole('heading', { name: 'Стратегия запуска' })
+    await screen.findByText('Чатов: 0')
     await user.click(screen.getByRole('button', { name: 'Отправить запрос' }))
 
     await waitFor(() => {
@@ -78,6 +107,7 @@ describe('useChatWorkspace backend integration', () => {
       })
     })
 
+    expect(await screen.findByText('Чатов: 1')).toBeInTheDocument()
     expect(
       await screen.findByText(/assistant: function factorial\(n\)/i),
     ).toBeInTheDocument()
@@ -91,10 +121,8 @@ describe('useChatWorkspace backend integration', () => {
 
     render(<WorkspaceHarness />)
 
-    await screen.findByRole('heading', { name: 'Стратегия запуска' })
-    await user.click(
-      screen.getByRole('button', { name: 'Отправить ошибочный запрос' }),
-    )
+    await screen.findByText('Чатов: 0')
+    await user.click(screen.getByRole('button', { name: 'Отправить ошибочный запрос' }))
 
     expect(
       await screen.findByText(

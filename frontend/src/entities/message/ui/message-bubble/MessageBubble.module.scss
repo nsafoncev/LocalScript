@@ -2,6 +2,8 @@
   max-width: min(720px, 92%);
   padding: 16px 18px;
   border-radius: 22px;
+  display: grid;
+  gap: 12px;
 }
 
 .assistant {
@@ -21,7 +23,6 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 10px;
 }
 
 .role {
@@ -50,9 +51,38 @@
 }
 
 .text {
-  margin: 0;
-  line-height: 1.6;
-  white-space: pre-wrap;
+  min-width: 0;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.copyButton {
+  min-height: 34px;
+  padding: 0.45rem 0.8rem;
+  border: 1px solid var(--mts-border);
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.copyButton:hover {
+  background: var(--mts-code-inline-bg);
+}
+
+.assistant .copyButton {
+  color: var(--mts-ink-soft);
+}
+
+.user .copyButton {
+  color: var(--mts-white);
+  border-color: rgba(255, 255, 255, 0.24);
 }
 
 @media (max-width: 768px) {

@@ -4,11 +4,12 @@ import { describe, expect, it, vi } from 'vitest'
 import { ChatPanel } from './ChatPanel'
 
 describe('ChatPanel', () => {
-  it('renders empty state when there are no messages', () => {
+  it('renders initial empty state when there are no chats and no messages', () => {
     render(
       <ChatPanel
         chatId="chat-1"
         error={null}
+        hasChats={false}
         isPending={false}
         messages={[]}
         onSendMessage={vi.fn(async () => undefined)}
@@ -16,7 +17,7 @@ describe('ChatPanel', () => {
       />,
     )
 
-    expect(screen.getByText(/начните диалог/i)).toBeInTheDocument()
+    expect(screen.getByText(/чем помочь/i)).toBeInTheDocument()
   })
 
   it('sends message on enter and clears the input after submit', async () => {
@@ -27,6 +28,7 @@ describe('ChatPanel', () => {
       <ChatPanel
         chatId="chat-1"
         error={null}
+        hasChats={true}
         isPending={false}
         messages={[]}
         onSendMessage={onSendMessage}
@@ -52,6 +54,7 @@ describe('ChatPanel', () => {
       <ChatPanel
         chatId="chat-1"
         error={null}
+        hasChats={true}
         isPending={false}
         messages={[]}
         onSendMessage={onSendMessage}
@@ -68,6 +71,7 @@ describe('ChatPanel', () => {
       <ChatPanel
         chatId="chat-2"
         error={null}
+        hasChats={true}
         isPending={false}
         messages={[]}
         onSendMessage={onSendMessage}
@@ -76,5 +80,22 @@ describe('ChatPanel', () => {
     )
 
     expect(screen.getByLabelText(/поле ввода сообщения/i)).toHaveValue('')
+  })
+
+  it('renders compact draft state when chat already exists', () => {
+    render(
+      <ChatPanel
+        chatId="chat-1"
+        error={null}
+        hasChats={true}
+        isPending={false}
+        messages={[]}
+        onSendMessage={vi.fn(async () => undefined)}
+        title="Новый чат"
+      />,
+    )
+
+    expect(screen.getByText(/новый диалог/i)).toBeInTheDocument()
+    expect(screen.getByText(/сформулируйте запрос/i)).toBeInTheDocument()
   })
 })

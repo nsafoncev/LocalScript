@@ -76,6 +76,7 @@ export function ChatLayout({
           <ChatPanel
             chatId={activeChatId}
             error={chatError}
+            hasChats={chats.length > 0}
             isPending={isChatPending}
             messages={messages}
             onSendMessage={onSendMessage}

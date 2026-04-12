@@ -9,11 +9,11 @@ const baseChat = createLocalChatPreview()
 describe('ChatLayout', () => {
   it('shows burger button when sidebar is closed', () => {
     render(
-      <ChatLayout
-        activeChatId={baseChat.id}
-        activeChatTitle={baseChat.title}
+        <ChatLayout
+          activeChatId={baseChat.id}
+          activeChatTitle={baseChat.title}
         chatError={null}
-        chats={[baseChat]}
+          chats={[baseChat]}
         isChatPending={false}
         isSidebarLoading={false}
         isSidebarOpen={false}
@@ -39,11 +39,11 @@ describe('ChatLayout', () => {
     const onCloseSidebar = vi.fn()
 
     render(
-      <ChatLayout
-        activeChatId={baseChat.id}
+        <ChatLayout
+          activeChatId={baseChat.id}
         activeChatTitle={baseChat.title}
         chatError={null}
-        chats={[baseChat]}
+          chats={[baseChat]}
         isChatPending={false}
         isSidebarLoading={false}
         isSidebarOpen={true}
@@ -68,11 +68,11 @@ describe('ChatLayout', () => {
 
   it('renders active burger state when sidebar is open', () => {
     render(
-      <ChatLayout
-        activeChatId={baseChat.id}
+        <ChatLayout
+          activeChatId={baseChat.id}
         activeChatTitle={baseChat.title}
         chatError={null}
-        chats={[baseChat]}
+          chats={[baseChat]}
         isChatPending={false}
         isSidebarLoading={false}
         isSidebarOpen={true}
@@ -98,11 +98,11 @@ describe('ChatLayout', () => {
     const onToggleTheme = vi.fn()
 
     render(
-      <ChatLayout
-        activeChatId={baseChat.id}
+        <ChatLayout
+          activeChatId={baseChat.id}
         activeChatTitle={baseChat.title}
         chatError={null}
-        chats={[baseChat]}
+          chats={[baseChat]}
         isChatPending={false}
         isSidebarLoading={false}
         isSidebarOpen={false}
@@ -125,11 +125,11 @@ describe('ChatLayout', () => {
 
   it('keeps header minimal without marketing text', () => {
     render(
-      <ChatLayout
-        activeChatId={baseChat.id}
+        <ChatLayout
+          activeChatId={baseChat.id}
         activeChatTitle={baseChat.title}
         chatError={null}
-        chats={[baseChat]}
+          chats={[baseChat]}
         isChatPending={false}
         isSidebarLoading={false}
         isSidebarOpen={false}

@@ -27,10 +27,6 @@ const CHAT_ERROR_MESSAGE =
 const SIDEBAR_ERROR_MESSAGE = 'Не удалось загрузить список чатов.'
 const SIDEBAR_MESSAGE_PREVIEW_LIMIT = 88
 
-function createSeedMessages(chat: ChatPreview): readonly ChatMessage[] {
-  return [createChatMessage('assistant', chat.lastMessage)]
-}
-
 function getActiveChat(
   chats: readonly ChatPreview[],
   activeChatId: string | null,
@@ -88,16 +84,6 @@ export function useChatWorkspace(): UseChatWorkspaceResult {
         }
 
         sidebarDispatch({ type: 'loadSucceeded', payload: chats })
-
-        chats.forEach((chat) => {
-          chatDispatch({
-            type: 'sessionRegistered',
-            payload: {
-              chatId: chat.id,
-              messages: createSeedMessages(chat),
-            },
-          })
-        })
       } catch {
         if (!isMounted) {
           return
@@ -157,42 +143,57 @@ export function useChatWorkspace(): UseChatWorkspaceResult {
   }
 
   async function sendMessage(value: string): Promise<void> {
-    const activeChatId = sidebarState.activeChatId
     const message = value.trim()
 
-    if (!activeChatId || !message || activeSession.isPending) {
+    if (!message) {
       return
     }
 
-    const currentChat = getActiveChat(sidebarState.chats, activeChatId)
+    let currentChat = getActiveChat(sidebarState.chats, sidebarState.activeChatId)
 
     if (!currentChat) {
+      currentChat = createLocalChatPreview()
+
+      sidebarDispatch({ type: 'chatCreated', payload: currentChat })
+      chatDispatch({
+        type: 'sessionRegistered',
+        payload: {
+          chatId: currentChat.id,
+          messages: [],
+        },
+      })
+    }
+
+    const currentSession =
+      chatState.sessions[currentChat.id] ?? initialChatSessionState
+
+    if (currentSession.isPending) {
       return
     }
 
     const userMessage = createChatMessage('user', message)
+    const queuedChatPreview = updateChatPreview(currentChat, {
+      title: isDraftChat(currentChat) ? deriveChatTitle(message) : undefined,
+      lastMessage: `Вы: ${message}`,
+    })
 
     chatDispatch({
       type: 'sessionUpdated',
       payload: {
-        chatId: activeChatId,
+        chatId: currentChat.id,
         action: { type: 'messageQueued', payload: userMessage },
       },
     })
     chatDispatch({
       type: 'sessionUpdated',
       payload: {
-        chatId: activeChatId,
+        chatId: currentChat.id,
         action: { type: 'requestStarted' },
       },
     })
-
     sidebarDispatch({
       type: 'chatUpdated',
-      payload: updateChatPreview(currentChat, {
-        title: isDraftChat(currentChat) ? deriveChatTitle(message) : undefined,
-        lastMessage: `Вы: ${message}`,
-      }),
+      payload: queuedChatPreview,
     })
 
     try {
@@ -204,15 +205,14 @@ export function useChatWorkspace(): UseChatWorkspaceResult {
       chatDispatch({
         type: 'sessionUpdated',
         payload: {
-          chatId: activeChatId,
+          chatId: currentChat.id,
           action: { type: 'responseReceived', payload: assistantMessage },
         },
       })
 
       sidebarDispatch({
         type: 'chatUpdated',
-        payload: updateChatPreview(currentChat, {
-          title: isDraftChat(currentChat) ? deriveChatTitle(message) : undefined,
+        payload: updateChatPreview(queuedChatPreview, {
           lastMessage: createPreviewText(response.code),
         }),
       })
@@ -223,7 +223,7 @@ export function useChatWorkspace(): UseChatWorkspaceResult {
       chatDispatch({
         type: 'sessionUpdated',
         payload: {
-          chatId: activeChatId,
+          chatId: currentChat.id,
           action: {
             type: 'requestFailed',
             payload: errorMessage,

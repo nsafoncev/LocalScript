@@ -41,4 +41,22 @@ describe('SidebarPanel', () => {
 
     expect(screen.getByTitle(chat.title)).toHaveAttribute('aria-pressed', 'true')
   })
+
+  it('shows empty state text when there are no chats', () => {
+    render(
+      <SidebarPanel
+        activeChatId={null}
+        chats={[]}
+        error={null}
+        isLoading={false}
+        onCreateChat={vi.fn()}
+        onSelectChat={vi.fn()}
+      />,
+    )
+
+    expect(screen.getByText(/чатов пока нет/i)).toBeInTheDocument()
+    expect(
+      screen.getByText(/создайте новый диалог, когда будете готовы/i),
+    ).toBeInTheDocument()
+  })
 })

@@ -46,7 +46,10 @@ export function SidebarPanel({
         {isLoading ? <p className={styles.info}>Загружаю список чатов...</p> : null}
         {error ? <p className={styles.error}>{error}</p> : null}
         {!isLoading && chats.length === 0 ? (
-          <p className={styles.info}>Чаты пока не появились</p>
+          <div className={styles.emptyState}>
+            <p className={styles.info}>Чатов пока нет</p>
+            <p className={styles.infoHint}>Создайте новый диалог, когда будете готовы.</p>
+          </div>
         ) : null}
         {chats.map((chat) => {
           const isActive = chat.id === activeChatId

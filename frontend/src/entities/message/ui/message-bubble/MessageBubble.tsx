@@ -1,5 +1,8 @@
-import type { JSX } from 'react'
+import { useState, type JSX } from 'react'
 import type { ChatMessage } from '../../model/types'
+import { copyText } from '../../../../shared/lib/copy/copy-text'
+import { hasMarkdownCode } from '../../../../shared/lib/markdown'
+import { MessageContent } from '../../../../shared/ui'
 import styles from './MessageBubble.module.scss'
 
 type MessageBubbleProps = {
@@ -17,6 +20,22 @@ export function MessageBubble({
   message,
 }: MessageBubbleProps): JSX.Element {
   const isUser = message.role === 'user'
+  const [isCopied, setIsCopied] = useState(false)
+  const canCopyMessage = !isUser && hasMarkdownCode(message.text)
+
+  async function handleCopy(): Promise<void> {
+    const isSuccess = await copyText(message.text)
+
+    if (!isSuccess) {
+      return
+    }
+
+    setIsCopied(true)
+
+    globalThis.setTimeout(() => {
+      setIsCopied(false)
+    }, 1600)
+  }
 
   return (
     <article
@@ -28,7 +47,22 @@ export function MessageBubble({
           {formatTime(message.createdAt)}
         </time>
       </div>
-      <p className={styles.text}>{message.text}</p>
+      <div className={styles.text}>
+        <MessageContent text={message.text} />
+      </div>
+      {canCopyMessage ? (
+        <div className={styles.actions}>
+          <button
+            className={styles.copyButton}
+            type="button"
+            onClick={() => {
+              void handleCopy()
+            }}
+          >
+            {isCopied ? 'Скопировано' : 'Скопировать'}
+          </button>
+        </div>
+      ) : null}
     </article>
   )
 }

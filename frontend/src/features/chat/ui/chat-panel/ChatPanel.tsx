@@ -10,6 +10,7 @@ import styles from './ChatPanel.module.scss'
 type ChatPanelProps = {
   chatId: string | null
   title: string
+  hasChats: boolean
   messages: readonly ChatMessage[]
   isPending: boolean
   error: string | null
@@ -19,6 +20,7 @@ type ChatPanelProps = {
 export function ChatPanel({
   chatId,
   title,
+  hasChats,
   messages,
   isPending,
   error,
@@ -37,7 +39,7 @@ export function ChatPanel({
     return (
       <Panel className={`${styles.panel} ${styles.panelEmpty}`}>
         <div className={styles.emptyViewport}>
-          <ChatEmptyState />
+          <ChatEmptyState hasChats={hasChats} />
           {error ? <p className={styles.error}>{error}</p> : null}
           <div className={styles.emptyComposer}>{input}</div>
         </div>
