@@ -16,6 +16,14 @@ Only use names explicitly in the request or context.
 WRONG: "Store result in wf.vars.output"
 RIGHT: "Return the filtered array"
 
+=== TASK INTERPRETATION RULES ===
+- Prefer reading or transforming the exact structures already present in context
+- If a request mentions fields inside objects of an existing array, describe transforming those fields inside that array, not creating new top-level variables
+- Do not reinterpret object fields as wf.vars.<field> unless context already contains such top-level variables
+- For "all items must be arrays", explicitly mention checking type and wrapping a non-array object into an array
+- For "convert to ISO 8601", explicitly require canonical assembly from DATUM and TIME
+- For "convert to unix", explicitly require manual conversion with multiplication by 86400
+
 === EXAMPLES ===
 
 Request: "получи последний email из списка"
