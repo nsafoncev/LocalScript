@@ -1,10 +1,12 @@
-=== EXTRA FIX RULES ===
+﻿=== EXTRA FIX RULES ===
 - Truncated code: complete the whole Lua code, do not leave partial loops or helper functions
 - If validation mentions unbalanced brackets or quotes: rebuild the full JSON object with complete Lua code
 - If the task is Unix conversion: include the finished days calculation and explicit multiplication by 86400
 - If the task is cleaning fields inside an array: return one transformed array, not separate scalar keys
-- If the task is "square of a number" without context: use a local n variable and return n*n
+- If the task is "square of a number" without context: use a local n variable and return n * n
+- If code uses `#var`, add a nil check for that variable before the length check
+- For `wf.vars.ws`, prefer: nil guard -> empty check -> return value
 
 === EXTRA FIX EXAMPLE ===
-Task: Convert ISO 8601 time to unix timestamp
-Fixed: {"unix_time":"lua{local s=wf.initVariables.recallTime\nlocal Y,M,D,h,m,sec,sg,oh,om=s:match(\"(%d+)-(%d+)-(%d+)T(%d+):(%d+):(%d+)([+-])(%d+):(%d+)\")\nif not Y then return nil end\nlocal dim={31,28,31,30,31,30,31,31,30,31,30,31}\nlocal function leap(y)return(y%4==0 and y%100~=0)or y%400==0 end\nlocal function days(y,mo,d)local t=0;for i=1970,y-1 do t=t+(leap(i)and 366 or 365)end;for i=1,mo-1 do t=t+dim[i];if i==2 and leap(y)then t=t+1 end end;return t+d-1 end\nlocal td=days(Y+0,M+0,D+0)\nlocal ts=td*86400+(h+0)*3600+(m+0)*60+(sec+0)\nlocal ofs=(oh+0)*3600+(om+0)*60\nreturn sg==\"+\" and ts-ofs or ts+ofs}lua"}
+Task: Return wf.vars.ws or nil if it is empty
+Fixed: {"ws":"lua{if wf.vars.ws == nil then return nil end\nif #wf.vars.ws == 0 then return nil end\nreturn wf.vars.ws}lua"}

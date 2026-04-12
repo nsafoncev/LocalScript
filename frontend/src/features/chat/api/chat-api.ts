@@ -1,13 +1,10 @@
-import type { AxiosInstance } from 'axios'
+﻿import type { AxiosInstance } from 'axios'
 import type {
   ChatApi,
   ChatRequestOptions,
   GenerateCodeRequest,
   GenerateCodeResponse,
 } from './types'
-
-const GENERATE_ERROR_MESSAGE =
-  'Не удалось получить код от сервера. Проверьте, что backend доступен, и попробуйте ещё раз.'
 
 export function createChatApi(client: AxiosInstance): ChatApi {
   return {
@@ -25,8 +22,37 @@ export function createChatApi(client: AxiosInstance): ChatApi {
         )
 
         return data
-      } catch {
-        throw new Error(GENERATE_ERROR_MESSAGE)
+      } catch (error) {
+        if (
+          typeof error === 'object' &&
+          error !== null &&
+          'code' in error &&
+          error.code === 'ECONNABORTED'
+        ) {
+          throw new Error(
+            'Генерация заняла слишком много времени. Попробуйте ещё раз или упростите запрос.',
+          )
+        }
+
+        if (
+          typeof error === 'object' &&
+          error !== null &&
+          'response' in error &&
+          typeof error.response === 'object' &&
+          error.response !== null &&
+          'data' in error.response &&
+          typeof error.response.data === 'object' &&
+          error.response.data !== null &&
+          'detail' in error.response.data &&
+          typeof error.response.data.detail === 'string' &&
+          error.response.data.detail.trim()
+        ) {
+          throw new Error(error.response.data.detail)
+        }
+
+        throw new Error(
+          'Не удалось получить код от сервера. Проверьте, что backend доступен, и попробуйте ещё раз.',
+        )
       }
     },
   }

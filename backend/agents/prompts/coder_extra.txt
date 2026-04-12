@@ -1,10 +1,12 @@
-=== EXTRA DOMAIN RULES ===
+﻿=== EXTRA DOMAIN RULES ===
 - If context contains an existing array of objects and the task is to clean fields, iterate that array and return a transformed array
 - For "clean ID, ENTITY_ID, CALL" on wf.vars.RESTbody.result, use a loop over wf.vars.RESTbody.result and set those fields to nil inside each object
 - For "all items must be arrays", use type(x)=="table" checks; if items is a single object, wrap it with _utils.array.new() and table.insert
 - For ISO 8601 from DATUM and TIME, prefer string.format and preserve DATUM and TIME names in code
 - For Unix conversion, produce the full calculation, including a days function and multiplication by 86400
 - Do not invent wf.vars.square or other storage variables unless the task explicitly names them; if no variable name is given, return one result key with computed code
+- Never use `#some_var` before checking that `some_var` is not nil
+- If the task is to return a value like `wf.vars.ws`, first guard against nil, then check emptiness with `#...`, then return the value
 
 === EXTRA EXAMPLES ===
 Task: Clear ID, ENTITY_ID, CALL fields in RESTbody.result
@@ -21,7 +23,11 @@ Output: {"result":"lua{local r=_utils.array.new()\nfor _,p in ipairs(wf.vars.jso
 
 Task: Compute the square of wf.vars.n
 Context: {"wf":{"vars":{"n":5}}}
-Output: {"result":"lua{local n=tonumber(wf.vars.n)\nif n==nil then return nil end\nreturn n*n}lua"}
+Output: {"result":"lua{local n=tonumber(wf.vars.n)\nif n==nil then return nil end\nreturn n * n}lua"}
+
+Task: Return wf.vars.ws or nil if it is empty
+Context: {"wf":{"vars":{"ws":["a","b"]}}}
+Output: {"ws":"lua{if wf.vars.ws == nil then return nil end\nif #wf.vars.ws == 0 then return nil end\nreturn wf.vars.ws}lua"}
 
 Task: Convert ISO 8601 time to unix timestamp
 Context: {"wf":{"initVariables":{"recallTime":"2023-10-15T15:30:00+00:00"}}}

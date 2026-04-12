@@ -1,4 +1,4 @@
-import json
+﻿import json
 import re
 
 
@@ -44,6 +44,8 @@ class LuaGenerationValidator:
 
             if "return" not in code:
                 errors.append(f"Поле {key} должно содержать return.")
+            if self._uses_length_without_nil_guard(code):
+                errors.append(f"Поле {key} использует #variable без проверки на nil.")
             if code.count("(") != code.count(")"):
                 errors.append(f"Поле {key} содержит несбалансированные круглые скобки.")
             if code.count("{") != code.count("}"):
@@ -70,3 +72,15 @@ class LuaGenerationValidator:
         except json.JSONDecodeError:
             return None
         return data if isinstance(data, dict) else None
+
+    def _uses_length_without_nil_guard(self, code: str) -> bool:
+        length_vars = set(re.findall(r"#([A-Za-z_][A-Za-z0-9_\.]*)", code))
+        for var_name in length_vars:
+            if (
+                f"{var_name} == nil" not in code
+                and f"{var_name}~=nil" not in code
+                and f"{var_name} ~= nil" not in code
+                and f"not {var_name}" not in code
+            ):
+                return True
+        return False

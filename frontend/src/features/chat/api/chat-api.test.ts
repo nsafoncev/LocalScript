@@ -39,4 +39,35 @@ describe('createChatApi', () => {
       'Не удалось получить код от сервера. Проверьте, что backend доступен, и попробуйте ещё раз.',
     )
   })
+  it('throws timeout-specific error when request is too slow', async () => {
+    const client = axios.create()
+    vi.spyOn(client, 'post').mockRejectedValue({ code: 'ECONNABORTED' })
+    const chatApi = createChatApi(client)
+
+    await expect(
+      chatApi.sendMessage({
+        prompt: 'Сгенерируй функцию',
+      }),
+    ).rejects.toThrow(
+      'Генерация заняла слишком много времени. Попробуйте ещё раз или упростите запрос.',
+    )
+  })
+
+  it('surfaces backend detail when it is available', async () => {
+    const client = axios.create()
+    vi.spyOn(client, 'post').mockRejectedValue({
+      response: {
+        data: {
+          detail: 'Ollama недоступна. Запустите сервис.',
+        },
+      },
+    })
+    const chatApi = createChatApi(client)
+
+    await expect(
+      chatApi.sendMessage({
+        prompt: 'Сгенерируй функцию',
+      }),
+    ).rejects.toThrow('Ollama недоступна. Запустите сервис.')
+  })
 })

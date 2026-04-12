@@ -1,17 +1,17 @@
 import logging
 
-from backend.agents.clarifier import ClarifierAgent
 from backend.agents.refiner import PromptRefinerAgent
 from backend.agents.coder import CoderAgent
 from backend.agents.validator import LuaGenerationValidator
+from backend.rag import LocalKnowledgeBase
 
 logger = logging.getLogger(__name__)
 
 # Module-level singletons — created once at startup
-_clarifier = ClarifierAgent()
 _refiner = PromptRefinerAgent()
 _coder = CoderAgent()
 _validator = LuaGenerationValidator()
+_kb = LocalKnowledgeBase()
 
 
 def run_pipeline(prompt: str) -> dict:
@@ -22,12 +22,8 @@ def run_pipeline(prompt: str) -> dict:
     Returns:
         {code, question, valid}
     """
-    clarification = _clarifier.analyze(prompt)
-    if clarification != "CLEAR":
-        logger.info("Clarifier asked: %s", clarification)
-        return {"code": "", "question": clarification, "valid": False}
-
-    refined_prompt = _refiner.refine(prompt)
+    rag_context = _kb.build_context(prompt)
+    refined_prompt = _refiner.refine(prompt, rag_context)
     logger.info("Refined prompt: %.120s", refined_prompt)
 
     code = _coder.generate_lua(

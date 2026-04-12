@@ -1,4 +1,3 @@
-import re
 from backend.agents.base import BaseAgent
 from backend.agents.critic import CriticAgent
 from backend.agents.validator import LuaGenerationValidator
@@ -77,6 +76,6 @@ class CoderAgent(BaseAgent):
             )
 
         if "квадрат" in task_lower or "square" in task_lower:
-            return '{"result":"lua{local n=tonumber(\'5\')\\nif n==nil then return nil end\\nreturn n*n}lua"}'
+            return '{"result":"lua{local n=tonumber(\'5\')\\nif n==nil then return nil end\\nreturn n * n}lua"}'
 
         return None

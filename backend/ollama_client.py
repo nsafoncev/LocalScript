@@ -10,6 +10,7 @@ OLLAMA_PARAMS = {
     "temperature": 0.2,
 }
 
+
 def generate(system_prompt: str, messages: list[dict]) -> str:
     payload = {
         "model": MODEL_NAME,
@@ -23,13 +24,14 @@ def generate(system_prompt: str, messages: list[dict]) -> str:
         response = httpx.post(
             f"{OLLAMA_HOST}/api/chat",
             json=payload,
-            timeout=120.0,
+            timeout=600.0,
         )
         response.raise_for_status()
         return response.json()["message"]["content"]
     except httpx.ConnectError:
-        raise RuntimeError("Ollama недоступна. Запустите сервис.")
-    
+        raise RuntimeError("Ollama is unavailable. Start the service.")
+
+
 def check_connection() -> bool:
     try:
         r = httpx.get(f"{OLLAMA_HOST}/api/tags", timeout=5.0)
