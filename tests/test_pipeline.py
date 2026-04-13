@@ -1,4 +1,4 @@
-import unittest
+﻿import unittest
 from unittest.mock import patch
 
 from backend.pipeline import run_pipeline
@@ -42,7 +42,11 @@ class RunPipelineTests(unittest.TestCase):
         )
         coder_mock.generate_lua.assert_called_once_with(
             [{"role": "user", "content": "Refined task"}],
-            task="Return wf.vars.ws",
+            task=(
+                "Return wf.vars.ws\n"
+                "Context: Relevant local knowledge base excerpts:\n"
+                "[lua_patterns.md] Use wf.vars for Octa API values."
+            ),
         )
         validator_mock.validate.assert_called_once_with(
             '{"result":"lua{return wf.vars.ws}lua"}'

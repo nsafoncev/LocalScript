@@ -2,7 +2,7 @@ from backend.agents.base import BaseAgent
 
 class CriticAgent(BaseAgent):
     def __init__(self):
-        super().__init__("critic.txt")
+        super().__init__("critic.txt", agent_role="critic")
 
     def fix(self, task: str, bad_code: str, errors: str) -> str:
         """

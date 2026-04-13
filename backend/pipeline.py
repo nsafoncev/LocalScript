@@ -28,7 +28,7 @@ def run_pipeline(prompt: str) -> dict:
 
     code = _coder.generate_lua(
         [{"role": "user", "content": refined_prompt}],
-        task=prompt,
+        task="\n".join(part for part in (prompt, f"Context: {rag_context}" if rag_context else "") if part),
     )
     logger.info("Coder output: %.120s", code)
 

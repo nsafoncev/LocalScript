@@ -187,7 +187,9 @@ export function useChatWorkspace(): UseChatWorkspaceResult {
       try {
         const response = await chatApi.sendMessage(
           {
-            prompt,
+            sessionId: chatId,
+            message: prompt,
+            context: '',
           },
           {
             signal: abortController.signal,

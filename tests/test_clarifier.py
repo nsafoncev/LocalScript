@@ -39,6 +39,15 @@ class ClarifierAgentTests(unittest.TestCase):
         self.assertEqual(result, "Что хранится в wf.vars.ws: строка, массив или объект?")
         run_mock.assert_not_called()
 
+    @patch("backend.agents.clarifier.BaseAgent.run")
+    def test_does_not_ask_for_source_when_named_variable_is_present(self, run_mock):
+        agent = ClarifierAgent()
+
+        result = agent.analyze("Как прибавить 1 к числовой переменной ws в LuaCode?")
+
+        self.assertEqual(result, "CLEAR")
+        run_mock.assert_not_called()
+
     @patch("backend.agents.clarifier.BaseAgent.run", return_value="CLEAR.")
     def test_normalizes_model_answer(self, run_mock):
         agent = ClarifierAgent()

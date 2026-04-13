@@ -14,8 +14,12 @@ export function createChatApi(client: AxiosInstance): ChatApi {
     ): Promise<GenerateCodeResponse> {
       try {
         const { data } = await client.post<GenerateCodeResponse>(
-          '/generate',
-          payload,
+          '/chat',
+          {
+            session_id: payload.sessionId,
+            message: payload.message,
+            context: payload.context ?? '',
+          },
           {
             signal: options?.signal,
           },

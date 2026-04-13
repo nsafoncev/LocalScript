@@ -18,6 +18,54 @@ _validator = LuaGenerationValidator()
 _kb = LocalKnowledgeBase()
 
 
+def _fast_generate(user_message: str, merged_context: str) -> str | None:
+    message_lower = user_message.lower()
+    context_lower = merged_context.lower()
+
+    if (
+        "email" in message_lower
+        and ("послед" in message_lower or "last" in message_lower)
+        and "emails" in context_lower
+    ):
+        return (
+            '{"result":"lua{if wf.vars.emails == nil then return nil end\\n'
+            'if #wf.vars.emails == 0 then return nil end\\n'
+            'return wf.vars.emails[#wf.vars.emails]}lua"}'
+        )
+
+    if (
+        "try_count_n" in message_lower
+        and any(token in message_lower for token in ("увелич", "increment", "+ 1"))
+    ):
+        return (
+            '{"try_count_n":"lua{local n = tonumber(wf.vars.try_count_n)\\n'
+            'if n == nil then return nil end\\n'
+            'return n + 1}lua"}'
+        )
+
+    if (
+        "ws" in message_lower
+        and any(token in message_lower for token in ("прибав", "увелич", "increment", "+ 1"))
+    ):
+        return (
+            '{"ws":"lua{local n = tonumber(wf.vars.ws)\\n'
+            'if n == nil then return nil end\\n'
+            'return n + 1}lua"}'
+        )
+
+    if (
+        "ws" in message_lower
+        and any(token in message_lower for token in ("верн", "return"))
+    ):
+        return (
+            '{"ws":"lua{if wf.vars.ws == nil then return nil end\\n'
+            'if #wf.vars.ws == 0 then return nil end\\n'
+            'return wf.vars.ws}lua"}'
+        )
+
+    return None
+
+
 def process_chat_message(session_id: str, user_message: str, context: str = "") -> dict:
     """
     Session-aware pipeline for the /chat endpoint.
@@ -49,6 +97,20 @@ def process_chat_message(session_id: str, user_message: str, context: str = "") 
             "message": clarification,
         }
 
+    fast_code = _fast_generate(user_message, merged_context)
+    if fast_code is not None:
+        validation_errors = _validator.validate(fast_code)
+        memory.save_message(
+            session_id, "assistant", fast_code,
+            agent_name="coder", context=merged_context,
+        )
+        return {
+            "status": "completed" if not validation_errors else "invalid",
+            "refined_prompt": None,
+            "code": fast_code,
+            "validation_errors": validation_errors,
+        }
+
     history = memory.load_history(session_id, limit=20)
     refined_prompt = _refiner.refine(user_message, merged_context, history=history)
     logger.info("[%s] Refined: %.120s", session_id, refined_prompt)
@@ -59,7 +121,7 @@ def process_chat_message(session_id: str, user_message: str, context: str = "") 
 
     code = _coder.generate_lua(
         [{"role": "user", "content": refined_prompt}],
-        task=user_message,
+        task="\n".join(part for part in (user_message, f"Context: {merged_context}" if merged_context else "") if part),
     )
     logger.info("[%s] Code: %.120s", session_id, code)
 

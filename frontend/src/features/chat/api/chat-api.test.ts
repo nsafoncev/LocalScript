@@ -1,29 +1,33 @@
-import axios from 'axios'
+﻿import axios from 'axios'
 import { describe, expect, it, vi } from 'vitest'
 import { createChatApi } from './chat-api'
 
 describe('createChatApi', () => {
-  it('sends prompt to backend and returns generated code', async () => {
+  it('sends session-aware request to chat endpoint and returns generated code', async () => {
     const client = axios.create()
     const postSpy = vi
       .spyOn(client, 'post')
-      .mockResolvedValue({ data: { code: 'print("Hello")' } })
+      .mockResolvedValue({ data: { status: 'completed', code: 'print("Hello")' } })
     const chatApi = createChatApi(client)
 
     const result = await chatApi.sendMessage({
-      prompt: 'Сгенерируй приветствие',
+      sessionId: 'chat-1',
+      message: 'Сгенерируй приветствие',
+      context: '',
     })
 
     expect(postSpy).toHaveBeenCalledWith(
-      '/generate',
+      '/chat',
       {
-        prompt: 'Сгенерируй приветствие',
+        session_id: 'chat-1',
+        message: 'Сгенерируй приветствие',
+        context: '',
       },
       {
         signal: undefined,
       },
     )
-    expect(result).toEqual({ code: 'print("Hello")' })
+    expect(result).toEqual({ status: 'completed', code: 'print("Hello")' })
   })
 
   it('throws russian error when backend request fails', async () => {
@@ -33,12 +37,14 @@ describe('createChatApi', () => {
 
     await expect(
       chatApi.sendMessage({
-        prompt: 'Сгенерируй функцию',
+        sessionId: 'chat-1',
+        message: 'Сгенерируй функцию',
       }),
     ).rejects.toThrow(
       'Не удалось получить код от сервера. Проверьте, что backend доступен, и попробуйте ещё раз.',
     )
   })
+
   it('throws timeout-specific error when request is too slow', async () => {
     const client = axios.create()
     vi.spyOn(client, 'post').mockRejectedValue({ code: 'ECONNABORTED' })
@@ -46,7 +52,8 @@ describe('createChatApi', () => {
 
     await expect(
       chatApi.sendMessage({
-        prompt: 'Сгенерируй функцию',
+        sessionId: 'chat-1',
+        message: 'Сгенерируй функцию',
       }),
     ).rejects.toThrow(
       'Генерация заняла слишком много времени. Попробуйте ещё раз или упростите запрос.',
@@ -58,7 +65,7 @@ describe('createChatApi', () => {
     vi.spyOn(client, 'post').mockRejectedValue({
       response: {
         data: {
-          detail: 'Ollama недоступна. Запустите сервис.',
+          detail: 'Ollama is unavailable. Start the service.',
         },
       },
     })
@@ -66,8 +73,30 @@ describe('createChatApi', () => {
 
     await expect(
       chatApi.sendMessage({
-        prompt: 'Сгенерируй функцию',
+        sessionId: 'chat-1',
+        message: 'Сгенерируй функцию',
       }),
-    ).rejects.toThrow('Ollama недоступна. Запустите сервис.')
+    ).rejects.toThrow('Ollama is unavailable. Start the service.')
+  })
+
+  it('passes clarification response through unchanged', async () => {
+    const client = axios.create()
+    vi.spyOn(client, 'post').mockResolvedValue({
+      data: {
+        status: 'needs_clarification',
+        message: 'Какую переменную или поле из wf нужно использовать?',
+      },
+    })
+    const chatApi = createChatApi(client)
+
+    const result = await chatApi.sendMessage({
+      sessionId: 'chat-1',
+      message: 'Добавь квадрат числа',
+    })
+
+    expect(result).toEqual({
+      status: 'needs_clarification',
+      message: 'Какую переменную или поле из wf нужно использовать?',
+    })
   })
 })

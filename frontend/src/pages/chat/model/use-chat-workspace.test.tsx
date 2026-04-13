@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react'
+﻿import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import type { JSX } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -91,9 +91,10 @@ describe('useChatWorkspace backend integration', () => {
     expect(await screen.findByText('Чатов: 1')).toBeInTheDocument()
   })
 
-  it('sends prompt to backend and creates chat on first message', async () => {
+  it('sends prompt to backend chat endpoint and creates chat on first message', async () => {
     postMock.mockResolvedValueOnce({
       data: {
+        status: 'completed',
         code: 'function factorial(n) {\n  return n <= 1 ? 1 : n * factorial(n - 1)\n}',
       },
     })
@@ -107,9 +108,11 @@ describe('useChatWorkspace backend integration', () => {
 
     await waitFor(() => {
       expect(postMock).toHaveBeenCalledWith(
-        '/generate',
+        '/chat',
         {
-          prompt: 'Функция factorial(n) для n >= 0',
+          session_id: expect.any(String),
+          message: 'Функция factorial(n) для n >= 0',
+          context: '',
         },
         expect.objectContaining({
           signal: expect.any(AbortSignal),
@@ -122,6 +125,26 @@ describe('useChatWorkspace backend integration', () => {
       await screen.findByText(/assistant\/code: function factorial\(n\)/i),
     ).toBeInTheDocument()
     expect(screen.getByText('idle')).toBeInTheDocument()
+  })
+
+  it('shows clarification question from backend in the chat', async () => {
+    postMock.mockResolvedValueOnce({
+      data: {
+        status: 'needs_clarification',
+        message: 'Что хранится в wf.vars.ws: строка, массив или объект?',
+      },
+    })
+
+    const user = userEvent.setup()
+
+    render(<WorkspaceHarness />)
+
+    await screen.findByText('Чатов: 0')
+    await user.click(screen.getByRole('button', { name: 'Отправить запрос' }))
+
+    expect(
+      await screen.findByText(/assistant\/text: Что хранится в wf\.vars\.ws/i),
+    ).toBeInTheDocument()
   })
 
   it('shows russian error when backend request fails', async () => {

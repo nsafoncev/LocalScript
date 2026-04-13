@@ -2,18 +2,31 @@ import httpx
 import os
 
 OLLAMA_HOST = os.getenv("OLLAMA_HOST", "http://localhost:11434")
-MODEL_NAME = os.getenv("MODEL_NAME", "qwen2.5-coder:3b-instruct-q4_K_M")
+DEFAULT_MODEL_NAME = "qwen2.5-coder:3b-instruct-q4_K_M"
 
 OLLAMA_PARAMS = {
     "num_ctx": 4096,
     "num_predict": 256,
-    "temperature": 0.2,
+    "temperature": 0.1,
 }
 
 
-def generate(system_prompt: str, messages: list[dict]) -> str:
+def resolve_model_name(agent_role: str | None = None) -> str:
+    if agent_role:
+        role_specific = os.getenv(f"{agent_role.upper()}_MODEL")
+        if role_specific:
+            return role_specific
+
+    return os.getenv("MODEL_NAME", DEFAULT_MODEL_NAME)
+
+
+def generate(
+    system_prompt: str,
+    messages: list[dict],
+    model_name: str | None = None,
+) -> str:
     payload = {
-        "model": MODEL_NAME,
+        "model": model_name or resolve_model_name(),
         "messages": [
             {"role": "system", "content": system_prompt}
         ] + messages,

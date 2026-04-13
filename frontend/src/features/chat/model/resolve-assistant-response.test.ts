@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+﻿import { describe, expect, it } from 'vitest'
 import { resolveAssistantResponse } from './resolve-assistant-response'
 
 describe('resolveAssistantResponse', () => {
@@ -21,6 +21,18 @@ describe('resolveAssistantResponse', () => {
     ).toEqual({
       format: 'text',
       text: 'Нужно уточнить формат входных данных.',
+    })
+  })
+
+  it('unwraps single-field backend json code payload', () => {
+    expect(
+      resolveAssistantResponse({
+        status: 'completed',
+        code: '{"ws":"lua{if wf.vars.ws == nil then return nil end\\nreturn wf.vars.ws}lua"}',
+      }),
+    ).toEqual({
+      format: 'code',
+      text: 'lua{if wf.vars.ws == nil then return nil end\nreturn wf.vars.ws}lua',
     })
   })
 })

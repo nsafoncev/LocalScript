@@ -1,4 +1,4 @@
-import importlib
+﻿import importlib
 import unittest
 from unittest.mock import patch
 
@@ -78,6 +78,39 @@ class ChatServiceFlowTests(unittest.TestCase):
             )
             coder_mock.generate_lua.assert_called_once_with(
                 [{"role": "user", "content": "Refined prompt"}],
-                task="Конвертируй recallTime в unix",
+                task=(
+                    "Конвертируй recallTime в unix\n"
+                    'Context: {"wf":{"initVariables":{"recallTime":"2023-10-15T15:30:00+00:00"}}}\n\n[kb] unix conversion'
+                ),
             )
             validator_mock.validate.assert_called_once_with('{"unix_time":"lua{return 1}lua"}')
+
+    def test_uses_fast_generation_for_simple_ws_increment(self):
+        module = self._load_chat_service()
+
+        with patch.object(module, "memory") as memory_mock, \
+            patch.object(module, "_kb") as kb_mock, \
+            patch.object(module, "_clarifier") as clarifier_mock, \
+            patch.object(module, "_refiner") as refiner_mock, \
+            patch.object(module, "_coder") as coder_mock, \
+            patch.object(module, "_validator") as validator_mock:
+            memory_mock.build_combined_request.return_value = "combined request"
+            kb_mock.build_context.return_value = ""
+            clarifier_mock.analyze.return_value = "CLEAR"
+            validator_mock.validate.return_value = []
+
+            result = module.process_chat_message(
+                "s1",
+                "Как прибавить 1 к числовой переменной ws в LuaCode?",
+                '{"wf":{"vars":{"ws":3}}}',
+            )
+
+            self.assertEqual(result["status"], "completed")
+            self.assertIsNone(result["refined_prompt"])
+            self.assertIn("tonumber(wf.vars.ws)", result["code"])
+            refiner_mock.refine.assert_not_called()
+            coder_mock.generate_lua.assert_not_called()
+
+
+if __name__ == "__main__":
+    unittest.main()

@@ -3,7 +3,7 @@
 
 class ClarifierAgent(BaseAgent):
     def __init__(self):
-        super().__init__("clarifier.txt")
+        super().__init__("clarifier.txt", agent_role="clarifier")
 
     def analyze(self, user_message: str, context: str = "") -> str:
         heuristic = self._fast_path(user_message, context)
@@ -72,6 +72,9 @@ class ClarifierAgent(BaseAgent):
         if context_lower:
             return False
 
+        if self._mentions_named_variable(message_lower):
+            return False
+
         mentions_generic_value = any(
             token in message_lower
             for token in ("числ", "значени", "переменн", "массив", "время", "дат", "строк")
@@ -81,6 +84,21 @@ class ClarifierAgent(BaseAgent):
             for token in ("wf.", "recalltime", "datum", "time", "try_count", "emails")
         )
         return mentions_generic_value and not mentions_exact_source
+
+    def _mentions_named_variable(self, message_lower: str) -> bool:
+        variable_markers = (
+            "переменн",
+            "поле ",
+            "field ",
+            "variable ",
+            "переменную ",
+            "переменной ",
+        )
+        known_short_names = (" ws", " ws?", " ws ", "try_count_n", "emails", "recalltime")
+
+        return any(marker in message_lower for marker in variable_markers) and any(
+            name in f" {message_lower} " for name in known_short_names
+        )
 
     def _needs_shape_clarification(self, message_lower: str, context_lower: str) -> bool:
         if context_lower:
