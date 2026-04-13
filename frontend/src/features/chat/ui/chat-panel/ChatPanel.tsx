@@ -61,12 +61,15 @@ export function ChatPanel({
       <div className={styles.body}>
         <div className={styles.messagesViewport}>
           <div className={styles.messages}>
-            <MessageList messages={messages} theme={theme} />
-            {isPending ? (
-              <div className={styles.loadingRow}>
-                <ChatLoading />
-              </div>
-            ) : null}
+            <MessageList
+              messages={messages}
+              pendingContent={isPending ? (
+                <div className={styles.loadingRow}>
+                  <ChatLoading />
+                </div>
+              ) : null}
+              theme={theme}
+            />
           </div>
         </div>
         {error ? <p className={styles.error}>{error}</p> : null}

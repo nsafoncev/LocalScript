@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react'
+﻿import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import { ChatPanel } from './ChatPanel'
@@ -107,5 +107,43 @@ describe('ChatPanel', () => {
 
     expect(screen.getByText(/новый диалог/i)).toBeInTheDocument()
     expect(screen.getByText(/сформулируйте запрос/i)).toBeInTheDocument()
+  })
+
+  it('renders loading bubble after the latest message', () => {
+    render(
+      <ChatPanel
+        chatId="chat-1"
+        error={null}
+        hasChats={true}
+        isPending={true}
+        messages={[
+          {
+            id: 'assistant-1',
+            role: 'assistant',
+            text: 'Первый ответ',
+            format: 'text',
+            createdAt: '2026-04-13T21:50:00.000Z',
+          },
+          {
+            id: 'user-2',
+            role: 'user',
+            text: 'Второй запрос',
+            format: 'text',
+            createdAt: '2026-04-13T21:51:00.000Z',
+          },
+        ]}
+        onSendMessage={vi.fn(async () => undefined)}
+        onStopGenerating={vi.fn()}
+        theme="light"
+        title="Новый чат"
+      />,
+    )
+
+    const latestMessage = screen.getByText('Второй запрос')
+    const loading = screen.getByLabelText(/думаю/i)
+
+    expect(
+      latestMessage.compareDocumentPosition(loading) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy()
   })
 })

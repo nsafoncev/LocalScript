@@ -32,7 +32,13 @@ describe('resolveAssistantResponse', () => {
       }),
     ).toEqual({
       format: 'code',
-      text: 'lua{if wf.vars.ws == nil then return nil end\nreturn wf.vars.ws}lua',
+      text:
+        'lua{\n' +
+        'if wf.vars.ws == nil then\n' +
+        '  return nil\n' +
+        'end\n' +
+        'return wf.vars.ws\n' +
+        '}lua',
     })
   })
 })

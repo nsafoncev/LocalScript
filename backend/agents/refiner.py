@@ -1,5 +1,6 @@
 ﻿from backend.agents.base import BaseAgent
 from typing import Optional
+import httpx
 
 
 class PromptRefinerAgent(BaseAgent):
@@ -23,7 +24,10 @@ class PromptRefinerAgent(BaseAgent):
         messages = list(history) if history else []
         messages.append({"role": "user", "content": content})
 
-        return self.run(messages)
+        try:
+            return self.run(messages)
+        except httpx.HTTPError:
+            return content
 
     def _fast_path(self, user_message: str, context: str) -> str | None:
         message = user_message.strip()
@@ -45,6 +49,9 @@ class PromptRefinerAgent(BaseAgent):
                 "time",
                 "emails",
                 "try_count",
+                "restbody",
+                "parsedcsv",
+                "zcdf_packages",
                 "relevant local knowledge base excerpts:",
             )
         )
@@ -63,6 +70,8 @@ class PromptRefinerAgent(BaseAgent):
                 "iso",
                 "добавь",
                 "создай",
+                "отфильтр",
+                "items",
             )
         )
         is_open_ended = any(

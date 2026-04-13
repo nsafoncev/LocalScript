@@ -24,7 +24,7 @@ TESTS = [
     {
         "name":    "3. Очистка переменных",
         "prompt":  "Очисти значения переменных ID, ENTITY_ID, CALL",
-        "context": '{"wf":{"vars":{"RESTbody":{"result":[{"ID":123,"ENTITY_ID":456,"CALL":"x","OTHER":"y"}]}}}}',
+        "context": '{"wf":{"vars":{"RESTbody":{"result":[{"ID":123,"ENTITY_ID":456,"CALL":"example_call_1","OTHER_KEY_1":"value1","OTHER_KEY_2":"value2"},{"ID":789,"ENTITY_ID":101,"CALL":"example_call_2","EXTRA_KEY_1":"value3","EXTRA_KEY_2":"value4"}]}}}}',
         "must_contain": ["wf.vars.RESTbody.result", "pairs"],
     },
     {
