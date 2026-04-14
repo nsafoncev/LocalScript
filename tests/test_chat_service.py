@@ -1,5 +1,5 @@
-import unittest
 import importlib
+import unittest
 from unittest.mock import patch
 
 
@@ -95,3 +95,32 @@ class ChatServiceTests(unittest.TestCase):
             task="Конвертируй recallTime в unix",
         )
         validator_mock.validate.assert_called_once_with('{"unix_time":"lua{return 1}lua"}')
+
+    @patch("backend.chat_service._validator")
+    @patch("backend.chat_service._coder")
+    @patch("backend.chat_service._refiner")
+    @patch("backend.chat_service._clarifier")
+    @patch("backend.chat_service._kb")
+    @patch("backend.chat_service.memory")
+    def test_passes_non_workflow_request_without_wf_clarification(
+        self,
+        memory_mock,
+        kb_mock,
+        clarifier_mock,
+        refiner_mock,
+        coder_mock,
+        validator_mock,
+    ):
+        process_chat_message = self._load_chat_service().process_chat_message
+        memory_mock.build_combined_request.return_value = "USER: Напиши функцию isPalindrome(s)"
+        memory_mock.load_history.return_value = []
+        kb_mock.build_context.return_value = ""
+        clarifier_mock.analyze.return_value = "CLEAR"
+        refiner_mock.refine.return_value = "Refined prompt"
+        coder_mock.generate_lua.return_value = '{"result":"lua{return true}lua"}'
+        validator_mock.validate.return_value = []
+
+        result = process_chat_message("s1", "Напиши функцию isPalindrome(s)")
+
+        self.assertEqual(result["status"], "completed")
+        clarifier_mock.analyze.assert_called_once_with("USER: Напиши функцию isPalindrome(s)", "")
