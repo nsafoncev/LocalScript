@@ -19,6 +19,8 @@ class ClarifierAgent(BaseAgent):
     def _parse(self, raw: str) -> str:
         if raw.upper().startswith("CLEAR"):
             return "CLEAR"
+        if raw.upper().startswith("UNCLEAR"):
+            return "Уточни, пожалуйста, какую переменную и какое действие нужно использовать."
         return raw
 
     def _fast_path(self, user_message: str, context: str) -> str | None:
@@ -29,6 +31,9 @@ class ClarifierAgent(BaseAgent):
 
         if not message:
             return "Что именно нужно сгенерировать?"
+
+        if self._answers_previous_clarification(message_lower):
+            return "CLEAR"
 
         if self._needs_shape_clarification(message_lower, context_lower):
             return "Что хранится в wf.vars.ws: строка, массив или объект?"
@@ -109,3 +114,25 @@ class ClarifierAgent(BaseAgent):
             token in message_lower for token in ("как вернуть", "return", "вернуть")
         )
         return asks_about_ws and asks_how_to_return and "wf." not in message_lower
+
+    def _answers_previous_clarification(self, message_lower: str) -> bool:
+        if "assistant:" not in message_lower or "user:" not in message_lower:
+            return False
+
+        last_user_answer = message_lower.rsplit("user:", 1)[-1].strip()
+        if not last_user_answer:
+            return False
+
+        if (
+            "что хранится в wf.vars.ws" in message_lower
+            and any(token in last_user_answer for token in ("числ", "number", "строк", "массив", "объект", "nil"))
+        ):
+            return True
+
+        if (
+            "какую переменную или поле из wf нужно использовать" in message_lower
+            and any(token in last_user_answer for token in ("wf.", "vars.", "initvariables.", "recalltime", "emails", "try_count"))
+        ):
+            return True
+
+        return False

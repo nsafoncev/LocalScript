@@ -24,18 +24,18 @@ services:
       - ollama
     environment:
       - OLLAMA_HOST=http://ollama:11434
-      - MODEL_NAME=qwen2.5-coder:3b-instruct-q4_K_M
+      - MODEL_NAME=qwen2.5-coder:7b
       - CLARIFIER_MODEL=qwen2.5:1.5b
       - REFINER_MODEL=qwen2.5:1.5b
-      - CODER_MODEL=qwen2.5-coder:3b-instruct-q4_K_M
-      - CRITIC_MODEL=qwen2.5-coder:3b-instruct-q4_K_M
+      - CODER_MODEL=qwen2.5-coder:7b
+      - CRITIC_MODEL=qwen2.5-coder:7b
 
   ollama:
     image: ollama/ollama
     ports:
       - "11434:11434"
     environment:
-      - MODEL_NAME=qwen2.5-coder:3b-instruct-q4_K_M
+      - MODEL_NAME=qwen2.5-coder:7b
       - FAST_MODEL_NAME=qwen2.5:1.5b
     volumes:
       - ollama_data:/root/.ollama

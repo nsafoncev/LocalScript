@@ -78,7 +78,8 @@ class ChatMemory:
         for item in history:
             role = item["role"].upper()
             parts.append(f"{role}: {item['content']}")
-        parts.append(f"USER: {latest_user_message}")
+        if not history or history[-1]["role"] != "user" or history[-1]["content"] != latest_user_message:
+            parts.append(f"USER: {latest_user_message}")
         return "\n".join(parts)
 
     def _init_db(self) -> None:

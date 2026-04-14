@@ -56,3 +56,28 @@ class ClarifierAgentTests(unittest.TestCase):
 
         self.assertEqual(result, "CLEAR")
         run_mock.assert_called_once()
+
+    @patch("backend.agents.clarifier.BaseAgent.run")
+    def test_marks_answer_to_previous_shape_question_as_clear(self, run_mock):
+        agent = ClarifierAgent()
+
+        result = agent.analyze(
+            "USER: Как вернуть переменную ws в LuaScript?\n"
+            "ASSISTANT: Что хранится в wf.vars.ws: строка, массив или объект?\n"
+            "USER: одно число, а не массив"
+        )
+
+        self.assertEqual(result, "CLEAR")
+        run_mock.assert_not_called()
+
+    @patch("backend.agents.clarifier.BaseAgent.run")
+    def test_replaces_raw_unclear_from_model_with_question(self, run_mock):
+        run_mock.return_value = "UNCLEAR"
+        agent = ClarifierAgent()
+
+        result = agent.analyze("Нечеткий запрос", "")
+
+        self.assertEqual(
+            result,
+            "Уточни, пожалуйста, какую переменную и какое действие нужно использовать.",
+        )

@@ -2,7 +2,7 @@ import httpx
 import os
 
 OLLAMA_HOST = os.getenv("OLLAMA_HOST", "http://localhost:11434")
-DEFAULT_MODEL_NAME = "qwen2.5-coder:3b-instruct-q4_K_M"
+DEFAULT_MODEL_NAME = "qwen2.5-coder:7b"
 
 OLLAMA_PARAMS = {
     "num_ctx": 4096,
