@@ -118,6 +118,16 @@ docker compose up --build
 - `frontend` — React/Vite UI
 - `nginx` — внешний reverse proxy на `localhost:8088`
 
+### GPU для Ollama
+
+В `docker-compose.yaml` для сервиса `ollama` включён:
+
+```yaml
+gpus: all
+```
+
+Это нужно, чтобы Ollama могла использовать видеокарту, а потребление модели шло в VRAM, а не только в RAM/CPU.
+
 ### Маршрутизация
 
 - `/chat` -> backend
@@ -308,6 +318,33 @@ npm test
 - [docker-compose.yaml](docker-compose.yaml)
 - [ollama/entrypoint.sh](ollama/entrypoint.sh)
 - [nginx/default.conf](nginx/default.conf)
+
+## Как проверить, что инференс идёт в GPU
+
+### 1. Подними проект
+
+```powershell
+docker compose up --build
+```
+
+### 2. Во время генерации открой второй терминал и запусти
+
+```powershell
+nvidia-smi -l 1
+```
+
+Если Ollama реально использует GPU, ты увидишь:
+
+- рост `GPU Memory Usage`
+- активный процесс в момент генерации
+
+### 3. Проверь логи Ollama
+
+```powershell
+docker compose logs -f ollama
+```
+
+Нужно искать признаки найденного GPU, а не строки вида `inference compute ... id=cpu`.
 
 ## Известные особенности
 
