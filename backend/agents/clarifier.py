@@ -96,6 +96,12 @@ class ClarifierAgent(BaseAgent):
                 last_assistant_line = line
                 break
 
+        if "что хранится в wf.vars.ws: строка, массив или объект?" in last_assistant_line:
+            return any(
+                token in message_lower
+                for token in ("числ", "number", "строк", "string", "массив", "array", "объект", "object", "nil")
+            )
+
         if "какую переменную или поле из wf нужно использовать?" not in last_assistant_line:
             return False
 
@@ -122,7 +128,9 @@ class ClarifierAgent(BaseAgent):
 
         coding_markers = (
             "напиши функцию",
+            "сделай функцию",
             "write a function",
+            "make a function",
             "implement",
             "реализуй",
             "fizzbuzz",

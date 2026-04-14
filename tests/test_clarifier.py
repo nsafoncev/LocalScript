@@ -42,6 +42,17 @@ class ClarifierAgentTests(unittest.TestCase):
         run_mock.assert_not_called()
 
     @patch("backend.agents.clarifier.BaseAgent.run")
+    def test_does_not_ask_for_wf_on_generic_sum_function_task(self, run_mock):
+        agent = ClarifierAgent()
+
+        result = agent.analyze(
+            "Сделай функцию, которая получает на вход массив чисел, а выдает их сумму"
+        )
+
+        self.assertEqual(result, "CLEAR")
+        run_mock.assert_not_called()
+
+    @patch("backend.agents.clarifier.BaseAgent.run")
     def test_asks_about_ws_shape_when_request_is_too_abstract(self, run_mock):
         agent = ClarifierAgent()
 
