@@ -5,10 +5,10 @@ import {
 } from './detect-message-format'
 
 describe('detectMessageFormat', () => {
-  it('returns code for raw code response', () => {
-    expect(
-      detectMessageFormat('const total = items.length\nreturn total'),
-    ).toBe('code')
+  it('does not use keyword-based code autodetection', () => {
+    expect(detectMessageFormat('const total = items.length\nreturn total')).toBe(
+      'text',
+    )
   })
 
   it('returns text for plain assistant message', () => {
@@ -19,6 +19,10 @@ describe('detectMessageFormat', () => {
 
   it('treats fenced code block as code-only response', () => {
     expect(detectMessageFormat('```ts\nconst answer = 42\n```')).toBe('code')
+  })
+
+  it('treats lua wrapper as code-only response', () => {
+    expect(detectMessageFormat('lua{return wf.vars.answer}lua')).toBe('code')
   })
 })
 

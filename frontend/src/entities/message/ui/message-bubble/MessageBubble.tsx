@@ -78,6 +78,7 @@ export function MessageBubble({
         <MessageContent
           codeCopyStatus={isCodeCopied ? 'Код скопирован' : null}
           format={message.format}
+          role={message.role}
           text={message.text}
           theme={theme}
           onCopyCode={

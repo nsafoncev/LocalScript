@@ -1,4 +1,6 @@
 import type { JSX, ReactNode } from 'react'
+import type { MessageRole } from '../../../entities/message'
+import { parseUserMessageContent } from '../../lib/message-content'
 import type { MessageFormat } from '../../lib/message-format'
 import { normalizeAssistantMarkdown, parseMarkdown } from '../../lib/markdown'
 import type { AppTheme } from '../../lib/theme/types'
@@ -8,6 +10,7 @@ import styles from './MessageContent.module.scss'
 type MessageContentProps = {
   text: string
   format: MessageFormat
+  role: MessageRole
   theme: AppTheme
   codeCopyStatus?: string | null
   onCopyCode?: () => void
@@ -25,6 +28,7 @@ function renderTextWithBreaks(value: string): ReactNode {
 export function MessageContent({
   text,
   format,
+  role,
   theme,
   codeCopyStatus = null,
   onCopyCode,
@@ -38,6 +42,33 @@ export function MessageContent({
           theme={theme}
           onCopyCode={onCopyCode}
         />
+      </div>
+    )
+  }
+
+  if (role === 'user') {
+    const blocks = parseUserMessageContent(text)
+
+    return (
+      <div className={styles.content}>
+        {blocks.map((block, index) => {
+          if (block.type === 'code') {
+            return (
+              <CodeBlock
+                code={block.code}
+                copyStatus={null}
+                key={`user-code-${index}`}
+                theme={theme}
+              />
+            )
+          }
+
+          return (
+            <p className={styles.paragraph} key={`user-paragraph-${index}`}>
+              {renderTextWithBreaks(block.text)}
+            </p>
+          )
+        })}
       </div>
     )
   }

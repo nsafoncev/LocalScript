@@ -1,14 +1,5 @@
 import type { MessageFormat } from './types'
 
-const CODE_HINT_PATTERNS: readonly RegExp[] = [
-  /\b(function|const|let|var|class|interface|type|return|import|export)\b/u,
-  /\b(def|lambda|print|from|async|await|elif|except)\b/u,
-  /\b(public|private|protected|static|void|new)\b/u,
-  /\b(if|for|while|switch)\s*\(/u,
-  /=>/u,
-  /<\/?[a-z][^>]*>/iu,
-]
-
 const FENCED_CODE_BLOCK_PATTERN = /^```([\w-]+)?\n[\s\S]*?\n?```$/u
 const CODE_BLOCK_PATTERN = /```([\w-]+)?\n([\s\S]*?)```/u
 
@@ -96,14 +87,6 @@ function formatLuaWrapper(value: string): string {
   return `lua{\n${formattedLines.join('\n')}\n}lua`
 }
 
-function hasCodeIndentation(lines: readonly string[]): boolean {
-  return lines.some((line) => /^( {2}|\t)/u.test(line))
-}
-
-function hasCodePunctuation(lines: readonly string[]): boolean {
-  return lines.some((line) => /[{};()[\]]/u.test(line))
-}
-
 function isProbablyCode(value: string): boolean {
   const trimmedValue = value.trim()
 
@@ -115,20 +98,7 @@ function isProbablyCode(value: string): boolean {
     return FENCED_CODE_BLOCK_PATTERN.test(trimmedValue)
   }
 
-  if (CODE_HINT_PATTERNS.some((pattern) => pattern.test(trimmedValue))) {
-    return true
-  }
-
-  const lines = trimmedValue
-    .split('\n')
-    .map((line) => line.trimEnd())
-    .filter(Boolean)
-
-  if (lines.length < 2) {
-    return false
-  }
-
-  return hasCodeIndentation(lines) || hasCodePunctuation(lines)
+  return isLuaWrapper(trimmedValue)
 }
 
 export function detectMessageFormat(text: string): MessageFormat {
