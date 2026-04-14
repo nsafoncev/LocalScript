@@ -35,14 +35,10 @@ class ClarifierAgent(BaseAgent):
         if not message:
             return "Что именно нужно сгенерировать?"
 
-<<<<<<< HEAD
-        if self._answers_previous_clarification(message_lower):
-=======
         if self._is_follow_up_to_clarification(message_lower, full_request_lower):
             return "CLEAR"
 
         if self._is_standalone_coding_request(message_lower, context_lower):
->>>>>>> 42b94fd98c7b6e435cfa420179fcb37d9da4d383
             return "CLEAR"
 
         if self._needs_shape_clarification(message_lower, context_lower):
@@ -191,29 +187,6 @@ class ClarifierAgent(BaseAgent):
         )
         return asks_about_ws and asks_how_to_return and "wf." not in message_lower
 
-<<<<<<< HEAD
-    def _answers_previous_clarification(self, message_lower: str) -> bool:
-        if "assistant:" not in message_lower or "user:" not in message_lower:
-            return False
-
-        last_user_answer = message_lower.rsplit("user:", 1)[-1].strip()
-        if not last_user_answer:
-            return False
-
-        if (
-            "что хранится в wf.vars.ws" in message_lower
-            and any(token in last_user_answer for token in ("числ", "number", "строк", "массив", "объект", "nil"))
-        ):
-            return True
-
-        if (
-            "какую переменную или поле из wf нужно использовать" in message_lower
-            and any(token in last_user_answer for token in ("wf.", "vars.", "initvariables.", "recalltime", "emails", "try_count"))
-        ):
-            return True
-
-        return False
-=======
     def _is_workflow_request(self, message_lower: str) -> bool:
         return any(
             token in message_lower
@@ -229,4 +202,3 @@ class ClarifierAgent(BaseAgent):
                 "vars",
             )
         )
->>>>>>> 42b94fd98c7b6e435cfa420179fcb37d9da4d383

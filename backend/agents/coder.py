@@ -169,9 +169,6 @@ class CoderAgent(BaseAgent):
                 'return sg==\\"+\\" and ts-ofs or ts+ofs}lua"}'
             )
 
-        if "квадрат" in task_lower or "square" in task_lower:
-            return '{"result":"lua{local n=tonumber(\'5\')\\nif n==nil then return nil end\\nreturn n * n}lua"}'
-
         wants_return = "верн" in task_lower or "return" in task_lower
         wants_last = "послед" in task_lower or "last" in task_lower
         wants_increment = "увелич" in task_lower or "increment" in task_lower or "+ 1" in task_lower
