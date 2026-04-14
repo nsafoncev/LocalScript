@@ -1,6 +1,12 @@
 .list {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 20px;
   min-height: 0;
+}
+
+@media (max-width: 768px) {
+  .list {
+    gap: 16px;
+  }
 }

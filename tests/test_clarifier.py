@@ -31,6 +31,17 @@ class ClarifierAgentTests(unittest.TestCase):
         run_mock.assert_not_called()
 
     @patch("backend.agents.clarifier.BaseAgent.run")
+    def test_does_not_ask_for_wf_on_standalone_coding_task(self, run_mock):
+        agent = ClarifierAgent()
+
+        result = agent.analyze(
+            "Напиши функцию isPalindrome(s), которая возвращает true, если строка является палиндромом."
+        )
+
+        self.assertEqual(result, "CLEAR")
+        run_mock.assert_not_called()
+
+    @patch("backend.agents.clarifier.BaseAgent.run")
     def test_asks_about_ws_shape_when_request_is_too_abstract(self, run_mock):
         agent = ClarifierAgent()
 
@@ -44,6 +55,19 @@ class ClarifierAgentTests(unittest.TestCase):
         agent = ClarifierAgent()
 
         result = agent.analyze("Как прибавить 1 к числовой переменной ws в LuaCode?")
+
+        self.assertEqual(result, "CLEAR")
+        run_mock.assert_not_called()
+
+    @patch("backend.agents.clarifier.BaseAgent.run")
+    def test_treats_short_reply_after_clarification_as_answered(self, run_mock):
+        agent = ClarifierAgent()
+
+        result = agent.analyze(
+            "USER: Напиши функцию fizzbuzz(n)\n"
+            "ASSISTANT: Какую переменную или поле из wf нужно использовать?\n"
+            "USER: не надо"
+        )
 
         self.assertEqual(result, "CLEAR")
         run_mock.assert_not_called()

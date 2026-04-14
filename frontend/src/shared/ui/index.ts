@@ -1,5 +1,6 @@
 export { Button } from './button/Button'
 export { BurgerButton } from './burger-button/BurgerButton'
+export { ChatScrollButton } from './chat-scroll-button'
 export { CodeBlock } from './CodeBlock'
 export { CopyIconButton } from './CopyIconButton'
 export { MessageActions } from './MessageActions'

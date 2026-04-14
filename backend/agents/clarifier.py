@@ -6,7 +6,8 @@ class ClarifierAgent(BaseAgent):
         super().__init__("clarifier.txt", agent_role="clarifier")
 
     def analyze(self, user_message: str, context: str = "") -> str:
-        heuristic = self._fast_path(user_message, context)
+        latest_user_message = self._extract_latest_user_message(user_message)
+        heuristic = self._fast_path(latest_user_message, context, user_message)
         if heuristic is not None:
             return heuristic
 
@@ -23,16 +24,25 @@ class ClarifierAgent(BaseAgent):
             return "Уточни, пожалуйста, какую переменную и какое действие нужно использовать."
         return raw
 
-    def _fast_path(self, user_message: str, context: str) -> str | None:
+    def _fast_path(self, user_message: str, context: str, full_request: str = "") -> str | None:
         message = user_message.strip()
         context = context.strip()
+        full_request = full_request.strip()
         message_lower = message.lower()
         context_lower = context.lower()
+        full_request_lower = full_request.lower()
 
         if not message:
             return "Что именно нужно сгенерировать?"
 
+<<<<<<< HEAD
         if self._answers_previous_clarification(message_lower):
+=======
+        if self._is_follow_up_to_clarification(message_lower, full_request_lower):
+            return "CLEAR"
+
+        if self._is_standalone_coding_request(message_lower, context_lower):
+>>>>>>> 42b94fd98c7b6e435cfa420179fcb37d9da4d383
             return "CLEAR"
 
         if self._needs_shape_clarification(message_lower, context_lower):
@@ -73,8 +83,71 @@ class ClarifierAgent(BaseAgent):
         )
         return has_workflow_data or has_generation_intent
 
+    def _extract_latest_user_message(self, raw: str) -> str:
+        lines = [line.strip() for line in raw.splitlines() if line.strip()]
+        for line in reversed(lines):
+            if line.startswith("USER:"):
+                return line[5:].strip()
+        return raw.strip()
+
+    def _is_follow_up_to_clarification(self, message_lower: str, full_request_lower: str) -> bool:
+        if "assistant:" not in full_request_lower:
+            return False
+
+        last_assistant_line = ""
+        for line in reversed([line.strip() for line in full_request_lower.splitlines() if line.strip()]):
+            if line.startswith("assistant:"):
+                last_assistant_line = line
+                break
+
+        if "какую переменную или поле из wf нужно использовать?" not in last_assistant_line:
+            return False
+
+        if self._mentions_named_variable(message_lower) or "wf." in message_lower:
+            return True
+
+        short_follow_up = len(message_lower.split()) <= 4
+        negative_reply = any(
+            token in message_lower
+            for token in ("не надо", "никакую", "любую", "без wf", "не из wf", "no", "none")
+        )
+        return short_follow_up or negative_reply
+
+    def _is_standalone_coding_request(self, message_lower: str, context_lower: str) -> bool:
+        if context_lower and "wf" in context_lower:
+            return False
+
+        mentions_workflow = any(
+            token in message_lower
+            for token in ("wf.", "wf ", "workflow", "luacode", "octapi", "lowcode", "initvariables", "vars.")
+        )
+        if mentions_workflow:
+            return False
+
+        coding_markers = (
+            "напиши функцию",
+            "write a function",
+            "implement",
+            "реализуй",
+            "fizzbuzz",
+            "palindrome",
+            "ispalindrome",
+            "python",
+            "javascript",
+            "js",
+            "typescript",
+            "java",
+            "c#",
+            "leetcode",
+            "алгоритм",
+        )
+        return any(marker in message_lower for marker in coding_markers)
+
     def _needs_specific_source(self, message_lower: str, context_lower: str) -> bool:
         if context_lower:
+            return False
+
+        if not self._is_workflow_request(message_lower):
             return False
 
         if self._mentions_named_variable(message_lower):
@@ -109,12 +182,16 @@ class ClarifierAgent(BaseAgent):
         if context_lower:
             return False
 
+        if not self._is_workflow_request(message_lower):
+            return False
+
         asks_about_ws = "ws" in message_lower
         asks_how_to_return = any(
             token in message_lower for token in ("как вернуть", "return", "вернуть")
         )
         return asks_about_ws and asks_how_to_return and "wf." not in message_lower
 
+<<<<<<< HEAD
     def _answers_previous_clarification(self, message_lower: str) -> bool:
         if "assistant:" not in message_lower or "user:" not in message_lower:
             return False
@@ -136,3 +213,20 @@ class ClarifierAgent(BaseAgent):
             return True
 
         return False
+=======
+    def _is_workflow_request(self, message_lower: str) -> bool:
+        return any(
+            token in message_lower
+            for token in (
+                "wf",
+                "переменн",
+                "поле",
+                "luacode",
+                "luascript",
+                "octapi",
+                "workflow",
+                "initvariables",
+                "vars",
+            )
+        )
+>>>>>>> 42b94fd98c7b6e435cfa420179fcb37d9da4d383

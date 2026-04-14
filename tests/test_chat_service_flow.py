@@ -111,6 +111,31 @@ class ChatServiceFlowTests(unittest.TestCase):
             refiner_mock.refine.assert_not_called()
             coder_mock.generate_lua.assert_not_called()
 
+    def test_uses_single_latest_user_message_in_combined_request(self):
+        module = self._load_chat_service()
+
+        with patch.object(module, "memory") as memory_mock, \
+            patch.object(module, "_kb") as kb_mock, \
+            patch.object(module, "_clarifier") as clarifier_mock, \
+            patch.object(module, "_refiner") as refiner_mock, \
+            patch.object(module, "_coder") as coder_mock, \
+            patch.object(module, "_validator") as validator_mock:
+            memory_mock.build_combined_request.return_value = "USER: Напиши функцию isPalindrome(s)"
+            memory_mock.load_history.return_value = []
+            kb_mock.build_context.return_value = ""
+            clarifier_mock.analyze.return_value = "CLEAR"
+            refiner_mock.refine.return_value = "Refined prompt"
+            coder_mock.generate_lua.return_value = '{"result":"lua{return true}lua"}'
+            validator_mock.validate.return_value = []
+
+            result = module.process_chat_message("s1", "Напиши функцию isPalindrome(s)")
+
+            self.assertEqual(result["status"], "completed")
+            clarifier_mock.analyze.assert_called_once_with(
+                "USER: Напиши функцию isPalindrome(s)",
+                "",
+            )
+
 
 if __name__ == "__main__":
     unittest.main()

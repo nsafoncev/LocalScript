@@ -1,7 +1,11 @@
-﻿import { render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { ChatPanel } from './ChatPanel'
+
+afterEach(() => {
+  vi.restoreAllMocks()
+})
 
 describe('ChatPanel', () => {
   it('renders initial empty state when there are no chats and no messages', () => {
@@ -145,5 +149,102 @@ describe('ChatPanel', () => {
     expect(
       latestMessage.compareDocumentPosition(loading) & Node.DOCUMENT_POSITION_FOLLOWING,
     ).toBeTruthy()
+  })
+
+  it('shows scroll-to-bottom button only when the chat is not at the bottom', () => {
+    render(
+      <ChatPanel
+        chatId="chat-1"
+        error={null}
+        hasChats={true}
+        isPending={false}
+        messages={[
+          {
+            id: 'assistant-1',
+            role: 'assistant',
+            text: 'Первый ответ',
+            format: 'text',
+            createdAt: '2026-04-13T21:50:00.000Z',
+          },
+        ]}
+        onSendMessage={vi.fn(async () => undefined)}
+        onStopGenerating={vi.fn()}
+        theme="light"
+        title="Новый чат"
+      />,
+    )
+
+    const viewport = document.querySelector('[class*="messages"]')
+
+    expect(viewport).not.toBeNull()
+
+    if (!(viewport instanceof HTMLDivElement)) {
+      throw new Error('Не удалось найти область прокрутки сообщений.')
+    }
+
+    Object.defineProperties(viewport, {
+      scrollHeight: { configurable: true, value: 700 },
+      scrollTop: { configurable: true, value: 120, writable: true },
+      clientHeight: { configurable: true, value: 320 },
+    })
+
+    fireEvent.scroll(viewport)
+
+    expect(
+      screen.getByRole('button', { name: /прокрутить чат вниз/i }),
+    ).toBeInTheDocument()
+  })
+
+  it('scrolls to the latest message after clicking the button', async () => {
+    const scrollIntoView = vi.fn()
+
+    vi.spyOn(Element.prototype, 'scrollIntoView').mockImplementation(scrollIntoView)
+
+    render(
+      <ChatPanel
+        chatId="chat-1"
+        error={null}
+        hasChats={true}
+        isPending={false}
+        messages={[
+          {
+            id: 'assistant-1',
+            role: 'assistant',
+            text: 'Первый ответ',
+            format: 'text',
+            createdAt: '2026-04-13T21:50:00.000Z',
+          },
+        ]}
+        onSendMessage={vi.fn(async () => undefined)}
+        onStopGenerating={vi.fn()}
+        theme="light"
+        title="Новый чат"
+      />,
+    )
+
+    const viewport = document.querySelector('[class*="messages"]')
+
+    expect(viewport).not.toBeNull()
+
+    if (!(viewport instanceof HTMLDivElement)) {
+      throw new Error('Не удалось найти область прокрутки сообщений.')
+    }
+
+    Object.defineProperties(viewport, {
+      scrollHeight: { configurable: true, value: 700 },
+      scrollTop: { configurable: true, value: 120, writable: true },
+      clientHeight: { configurable: true, value: 320 },
+    })
+
+    fireEvent.scroll(viewport)
+
+    await userEvent
+      .setup()
+      .click(screen.getByRole('button', { name: /прокрутить чат вниз/i }))
+
+    expect(scrollIntoView).toHaveBeenCalledWith({
+      behavior: 'smooth',
+      block: 'end',
+    })
   })
 })

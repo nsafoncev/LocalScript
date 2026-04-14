@@ -7,6 +7,7 @@ describe('MessageContent', () => {
     render(
       <MessageContent
         format="text"
+        role="assistant"
         text={'```ts\nconst answer = 42\n```'}
         theme="light"
       />,
@@ -15,10 +16,11 @@ describe('MessageContent', () => {
     expect(screen.getByText('const answer = 42')).toBeInTheDocument()
   })
 
-  it('renders inline code inside a paragraph', () => {
+  it('renders inline code inside an assistant paragraph', () => {
     render(
       <MessageContent
         format="text"
+        role="assistant"
         text="Запустите `npm run dev` и проверьте результат."
         theme="light"
       />,
@@ -32,6 +34,7 @@ describe('MessageContent', () => {
     render(
       <MessageContent
         format="code"
+        role="assistant"
         text={'const total = items.length\nreturn total'}
         theme="dark"
       />,
@@ -39,5 +42,21 @@ describe('MessageContent', () => {
 
     expect(screen.getByText(/const total = items\.length/i)).toBeInTheDocument()
     expect(screen.getByText(/return total/i)).toBeInTheDocument()
+  })
+
+  it('renders user message with fenced code block without converting surrounding text into code', () => {
+    render(
+      <MessageContent
+        format="text"
+        role="user"
+        text={'Вот данные:\n\n```json\n{\n  "wf": true\n}\n```\n\nПроверь их.'}
+        theme="light"
+      />,
+    )
+
+    expect(screen.getByText('Вот данные:')).toBeInTheDocument()
+    expect(screen.getByText('{')).toBeInTheDocument()
+    expect(screen.getByText(/"wf": true/)).toBeInTheDocument()
+    expect(screen.getByText('Проверь их.')).toBeInTheDocument()
   })
 })

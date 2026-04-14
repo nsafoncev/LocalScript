@@ -1,14 +1,5 @@
 import type { MessageFormat } from './types'
 
-const CODE_HINT_PATTERNS: readonly RegExp[] = [
-  /\b(function|const|let|var|class|interface|type|return|import|export)\b/u,
-  /\b(def|lambda|print|from|async|await|elif|except)\b/u,
-  /\b(public|private|protected|static|void|new)\b/u,
-  /\b(if|for|while|switch)\s*\(/u,
-  /=>/u,
-  /<\/?[a-z][^>]*>/iu,
-]
-
 const FENCED_CODE_BLOCK_PATTERN = /^```([\w-]+)?\n[\s\S]*?\n?```$/u
 const CODE_BLOCK_PATTERN = /```([\w-]+)?\n([\s\S]*?)```/u
 
@@ -29,31 +20,42 @@ function isLuaWrapper(value: string): boolean {
 }
 
 function shouldIncreaseIndent(line: string): boolean {
-  return /\b(then|do|function)\s*$/u.test(line.trim())
+  const trimmedLine = line.trim()
+
+  return (
+    /^(local\s+function\b|function\b|repeat\b)/u.test(trimmedLine) ||
+    /\b(then|do)\s*$/u.test(trimmedLine)
+  )
 }
 
 function shouldDecreaseIndent(line: string): boolean {
   return /^(end|else\b|elseif\b)/u.test(line.trim())
 }
 
-function expandLuaStatements(value: string): string {
-  const normalized = value.replace(/\s+/g, ' ').trim()
+function splitCompactLuaLine(line: string): string[] {
+  const expanded = line
+    .replace(/\b(local function|function|for|if|while|repeat|return|end|else|elseif)\b/gu, '\n$1')
+    .replace(/\b(then|do)\s+(?=\S)/gu, '$1\n')
+    .replace(/\belse\s+(?=\S)/gu, 'else\n')
 
-  if (!normalized || normalized.includes('\n')) {
+  return expanded
+    .split('\n')
+    .map((part) => part.trim())
+    .filter(Boolean)
+}
+
+function expandLuaStatements(value: string): string {
+  const normalized = normalizeLineEndings(value).trim()
+
+  if (!normalized) {
     return normalized
   }
 
-  return normalized
-    .replace(/\s+(local function\b)/gu, '\n$1')
-    .replace(/\s+(function\b)/gu, '\n$1')
-    .replace(/\s+(for\b)/gu, '\n$1')
-    .replace(/\s+(if\b)/gu, '\n$1')
-    .replace(/\s+(while\b)/gu, '\n$1')
-    .replace(/\s+(repeat\b)/gu, '\n$1')
-    .replace(/\s+(return\b)/gu, '\n$1')
-    .replace(/\s+(end\b)/gu, '\n$1')
-    .replace(/\s+(else\b)/gu, '\n$1')
-    .replace(/\s+(elseif\b)/gu, '\n$1')
+  const lines = normalized
+    .split('\n')
+    .flatMap((line) => splitCompactLuaLine(line))
+
+  return lines.join('\n')
 }
 
 function formatLuaWrapper(value: string): string {
@@ -66,7 +68,7 @@ function formatLuaWrapper(value: string): string {
 
   const inner = expandLuaStatements(match[1]?.trim() ?? '')
   if (!inner) {
-    return 'lua{\n}lua'
+    return ''
   }
 
   const lines = inner
@@ -82,26 +84,18 @@ function formatLuaWrapper(value: string): string {
 
     const formattedLine = `${'  '.repeat(indentLevel)}${line}`
 
-    if (shouldIncreaseIndent(line)) {
+    if (/^else\b/u.test(line.trim())) {
       indentLevel += 1
-    }
-
-    if (/^(else\b|elseif\b)/u.test(line.trim())) {
+    } else if (/^elseif\b/u.test(line.trim()) && /\bthen\s*$/u.test(line.trim())) {
+      indentLevel += 1
+    } else if (shouldIncreaseIndent(line)) {
       indentLevel += 1
     }
 
     return formattedLine
   })
 
-  return `lua{\n${formattedLines.join('\n')}\n}lua`
-}
-
-function hasCodeIndentation(lines: readonly string[]): boolean {
-  return lines.some((line) => /^( {2}|\t)/u.test(line))
-}
-
-function hasCodePunctuation(lines: readonly string[]): boolean {
-  return lines.some((line) => /[{};()[\]]/u.test(line))
+  return formattedLines.join('\n')
 }
 
 function isProbablyCode(value: string): boolean {
@@ -115,20 +109,7 @@ function isProbablyCode(value: string): boolean {
     return FENCED_CODE_BLOCK_PATTERN.test(trimmedValue)
   }
 
-  if (CODE_HINT_PATTERNS.some((pattern) => pattern.test(trimmedValue))) {
-    return true
-  }
-
-  const lines = trimmedValue
-    .split('\n')
-    .map((line) => line.trimEnd())
-    .filter(Boolean)
-
-  if (lines.length < 2) {
-    return false
-  }
-
-  return hasCodeIndentation(lines) || hasCodePunctuation(lines)
+  return isLuaWrapper(trimmedValue)
 }
 
 export function detectMessageFormat(text: string): MessageFormat {
