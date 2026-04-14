@@ -20,31 +20,42 @@ function isLuaWrapper(value: string): boolean {
 }
 
 function shouldIncreaseIndent(line: string): boolean {
-  return /\b(then|do|function)\s*$/u.test(line.trim())
+  const trimmedLine = line.trim()
+
+  return (
+    /^(local\s+function\b|function\b|repeat\b)/u.test(trimmedLine) ||
+    /\b(then|do)\s*$/u.test(trimmedLine)
+  )
 }
 
 function shouldDecreaseIndent(line: string): boolean {
   return /^(end|else\b|elseif\b)/u.test(line.trim())
 }
 
-function expandLuaStatements(value: string): string {
-  const normalized = value.replace(/\s+/g, ' ').trim()
+function splitCompactLuaLine(line: string): string[] {
+  const expanded = line
+    .replace(/\b(local function|function|for|if|while|repeat|return|end|else|elseif)\b/gu, '\n$1')
+    .replace(/\b(then|do)\s+(?=\S)/gu, '$1\n')
+    .replace(/\belse\s+(?=\S)/gu, 'else\n')
 
-  if (!normalized || normalized.includes('\n')) {
+  return expanded
+    .split('\n')
+    .map((part) => part.trim())
+    .filter(Boolean)
+}
+
+function expandLuaStatements(value: string): string {
+  const normalized = normalizeLineEndings(value).trim()
+
+  if (!normalized) {
     return normalized
   }
 
-  return normalized
-    .replace(/\s+(local function\b)/gu, '\n$1')
-    .replace(/\s+(function\b)/gu, '\n$1')
-    .replace(/\s+(for\b)/gu, '\n$1')
-    .replace(/\s+(if\b)/gu, '\n$1')
-    .replace(/\s+(while\b)/gu, '\n$1')
-    .replace(/\s+(repeat\b)/gu, '\n$1')
-    .replace(/\s+(return\b)/gu, '\n$1')
-    .replace(/\s+(end\b)/gu, '\n$1')
-    .replace(/\s+(else\b)/gu, '\n$1')
-    .replace(/\s+(elseif\b)/gu, '\n$1')
+  const lines = normalized
+    .split('\n')
+    .flatMap((line) => splitCompactLuaLine(line))
+
+  return lines.join('\n')
 }
 
 function formatLuaWrapper(value: string): string {
@@ -57,7 +68,7 @@ function formatLuaWrapper(value: string): string {
 
   const inner = expandLuaStatements(match[1]?.trim() ?? '')
   if (!inner) {
-    return 'lua{\n}lua'
+    return ''
   }
 
   const lines = inner
@@ -73,18 +84,18 @@ function formatLuaWrapper(value: string): string {
 
     const formattedLine = `${'  '.repeat(indentLevel)}${line}`
 
-    if (shouldIncreaseIndent(line)) {
+    if (/^else\b/u.test(line.trim())) {
       indentLevel += 1
-    }
-
-    if (/^(else\b|elseif\b)/u.test(line.trim())) {
+    } else if (/^elseif\b/u.test(line.trim()) && /\bthen\s*$/u.test(line.trim())) {
+      indentLevel += 1
+    } else if (shouldIncreaseIndent(line)) {
       indentLevel += 1
     }
 
     return formattedLine
   })
 
-  return `lua{\n${formattedLines.join('\n')}\n}lua`
+  return formattedLines.join('\n')
 }
 
 function isProbablyCode(value: string): boolean {
